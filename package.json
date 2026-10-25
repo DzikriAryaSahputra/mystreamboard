@@ -1,0 +1,15 @@
+{
+  "name": "mystreamboard",
+  "version": "1.0.0",
+  "private": true,
+  "description": "MyStreamBoard - Turn your smartphone into a powerful Stream Deck & Soundboard",
+  "author": "Dzikri Arya Sahputra <tomoriid62@gmail.com>",
+  "license": "PROPRIETARY",
+  "scripts": {
+    "start": "node server/src/server.js",
+    "server": "node server/src/server.js",
+    "client": "npm --prefix client run dev",
+    "build": "npm --prefix client run build",
+    "install:all": "npm install --prefix server && npm install --prefix client"
+  }
+}

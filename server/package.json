@@ -1,0 +1,21 @@
+{
+  "name": "mystreamboard-server",
+  "version": "1.0.0",
+  "description": "MyStreamBoard PC Desktop Agent - Proprietary Stream Deck & Soundboard Server",
+  "author": "Dzikri Arya Sahputra <tomoriid62@gmail.com>",
+  "license": "PROPRIETARY",
+  "main": "src/server.js",
+  "type": "module",
+  "scripts": {
+    "start": "node src/server.js",
+    "dev": "node --watch src/server.js"
+  },
+  "dependencies": {
+    "cors": "^2.8.5",
+    "express": "^4.21.2",
+    "obs-websocket-js": "^5.0.6",
+    "qrcode": "^1.5.4",
+    "qrcode-terminal": "^0.12.0",
+    "ws": "^8.18.0"
+  }
+}
