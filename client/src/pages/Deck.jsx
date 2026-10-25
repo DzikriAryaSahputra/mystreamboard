@@ -163,20 +163,22 @@ export default function Deck({ onNavigate }) {
   const gridCols = activePage?.gridCols || 4;
 
   return (
-    <div style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column', background: '#07090e' }}>
+    <div style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column', background: '#080808' }}>
+      <div className="ambient-bg"></div>
+
       {/* Top Bar Header */}
       <header className="glass-nav" style={{ padding: '12px 18px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', zIndex: 10 }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-            <div style={{ width: '32px', height: '32px', borderRadius: '8px', background: 'linear-gradient(135deg, #3b82f6, #8b5cf6)', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 0 12px rgba(59, 130, 246, 0.5)' }}>
-              <SlidersHorizontal size={18} color="#fff" />
+            <div style={{ width: '32px', height: '32px', borderRadius: '8px', background: '#1c1c1c', border: '1px solid #2e2e2e', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+              <SlidersHorizontal size={16} color="#f5f5f5" />
             </div>
             <div>
-              <div style={{ fontSize: '1rem', fontWeight: '800', letterSpacing: '-0.02em', background: 'linear-gradient(90deg, #fff, #94a3b8)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>
+              <div style={{ fontSize: '0.95rem', fontWeight: '800', letterSpacing: '-0.02em', color: '#f5f5f5' }}>
                 MyStreamBoard
               </div>
-              <div style={{ fontSize: '0.62rem', color: '#64748b', fontWeight: '600', letterSpacing: '0.04em' }}>
-                SMARTPHONE DECK CONTROLLER
+              <div style={{ fontSize: '0.62rem', color: '#737373', fontWeight: '600' }}>
+                SMARTPHONE CONTROLLER
               </div>
             </div>
           </div>
@@ -185,15 +187,15 @@ export default function Deck({ onNavigate }) {
           <button 
             onClick={() => setShowSettings(true)}
             style={{
-              background: connected ? 'rgba(16, 185, 129, 0.12)' : 'rgba(239, 68, 68, 0.12)',
-              border: `1px solid ${connected ? 'rgba(16, 185, 129, 0.3)' : 'rgba(239, 68, 68, 0.3)'}`,
+              background: connected ? 'rgba(255, 255, 255, 0.08)' : 'rgba(239, 68, 68, 0.15)',
+              border: `1px solid ${connected ? 'rgba(255, 255, 255, 0.2)' : 'rgba(239, 68, 68, 0.3)'}`,
               borderRadius: '20px',
               padding: '4px 10px',
               display: 'flex',
               alignItems: 'center',
               gap: '6px',
               cursor: 'pointer',
-              color: connected ? '#10b981' : '#ef4444',
+              color: connected ? '#f5f5f5' : '#ef4444',
               fontSize: '0.72rem',
               fontWeight: '700'
             }}
@@ -206,13 +208,13 @@ export default function Deck({ onNavigate }) {
         {/* Right Action Icons */}
         <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
           {obsStatus.streaming && (
-            <div className="badge-live">
-              <span className="dot-pulse"></span> LIVE
+            <div style={{ display: 'inline-flex', alignItems: 'center', gap: '5px', padding: '4px 8px', borderRadius: '16px', background: '#222', border: '1px solid #555', color: '#fff', fontSize: '0.7rem', fontWeight: '700' }}>
+              <Radio size={12} /> LIVE
             </div>
           )}
 
           {obsStatus.recording && (
-            <div style={{ display: 'inline-flex', alignItems: 'center', gap: '5px', padding: '4px 8px', borderRadius: '16px', background: 'rgba(239, 68, 68, 0.2)', border: '1px solid #ef4444', color: '#ef4444', fontSize: '0.7rem', fontWeight: '700' }}>
+            <div style={{ display: 'inline-flex', alignItems: 'center', gap: '5px', padding: '4px 8px', borderRadius: '16px', background: '#222', border: '1px solid #555', color: '#ef4444', fontSize: '0.7rem', fontWeight: '700' }}>
               <Circle size={8} fill="#ef4444" /> REC
             </div>
           )}
@@ -220,7 +222,7 @@ export default function Deck({ onNavigate }) {
           <button 
             onClick={toggleFullscreen}
             title="Fullscreen Mode"
-            style={{ width: '36px', height: '36px', borderRadius: '10px', background: 'rgba(255, 255, 255, 0.05)', border: '1px solid rgba(255, 255, 255, 0.08)', color: '#94a3b8', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' }}
+            style={{ width: '36px', height: '36px', borderRadius: '10px', background: '#141414', border: '1px solid #222', color: '#a3a3a3', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' }}
           >
             <Maximize2 size={16} />
           </button>
@@ -228,7 +230,7 @@ export default function Deck({ onNavigate }) {
           <button 
             onClick={() => onNavigate('studio')}
             title="Open PC Studio Editor"
-            style={{ width: '36px', height: '36px', borderRadius: '10px', background: 'rgba(255, 255, 255, 0.05)', border: '1px solid rgba(255, 255, 255, 0.08)', color: '#94a3b8', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' }}
+            style={{ width: '36px', height: '36px', borderRadius: '10px', background: '#141414', border: '1px solid #222', color: '#a3a3a3', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' }}
           >
             <SlidersHorizontal size={16} />
           </button>
@@ -237,7 +239,7 @@ export default function Deck({ onNavigate }) {
 
       {/* Page Selector Tabs */}
       {config?.pages && config.pages.length > 0 && (
-        <div style={{ padding: '8px 16px', display: 'flex', gap: '8px', overflowX: 'auto', borderBottom: '1px solid rgba(255, 255, 255, 0.05)', background: 'rgba(10, 13, 20, 0.5)' }}>
+        <div style={{ padding: '10px 16px', display: 'flex', gap: '8px', overflowX: 'auto', borderBottom: '1px solid #1c1c1c', background: '#0a0a0a' }}>
           {config.pages.map((p) => {
             const isActive = p.id === activePageId;
             return (
@@ -245,17 +247,17 @@ export default function Deck({ onNavigate }) {
                 key={p.id}
                 onClick={() => setActivePageId(p.id)}
                 style={{
-                  padding: '8px 14px',
-                  borderRadius: '12px',
-                  background: isActive ? 'linear-gradient(135deg, rgba(59, 130, 246, 0.25), rgba(139, 92, 246, 0.25))' : 'rgba(255, 255, 255, 0.03)',
-                  border: isActive ? '1px solid rgba(59, 130, 246, 0.5)' : '1px solid rgba(255, 255, 255, 0.06)',
-                  color: isActive ? '#fff' : '#94a3b8',
-                  fontSize: '0.82rem',
+                  padding: '7px 18px',
+                  borderRadius: '20px',
+                  background: isActive ? '#f5f5f5' : '#141414',
+                  border: isActive ? '1px solid #ffffff' : '1px solid #222222',
+                  color: isActive ? '#080808' : '#a3a3a3',
+                  fontSize: '0.8rem',
                   fontWeight: '700',
                   whiteSpace: 'nowrap',
                   cursor: 'pointer',
                   transition: 'all 0.2s',
-                  boxShadow: isActive ? '0 0 15px rgba(59, 130, 246, 0.25)' : 'none'
+                  boxShadow: isActive ? '0 0 10px rgba(255, 255, 255, 0.2)' : 'none'
                 }}
               >
                 {p.name}
@@ -280,16 +282,16 @@ export default function Deck({ onNavigate }) {
           {activePage?.buttons?.map((btn) => {
             const isPressed = pressedBtnId === btn.id;
             const isFullArtwork = btn.imageMode === 'full' && btn.image;
+            const isSoundboard = btn.category === 'Soundboard' || btn.action?.type === 'sound' || activePage.category === 'Soundboard';
 
             return (
               <div
                 key={btn.id}
                 className={`deck-card ${isFullArtwork ? 'full-artwork' : 'thumb-artwork'} ${isPressed ? 'active-pressed' : ''}`}
                 style={{
-                  '--border-focus': btn.color || '#8b5cf6',
                   transform: isPressed ? 'scale(0.92)' : 'none',
-                  borderColor: isPressed ? '#8b5cf6' : undefined,
-                  boxShadow: isPressed ? '0 0 24px rgba(139, 92, 246, 0.6)' : undefined
+                  borderColor: isPressed ? '#888' : undefined,
+                  boxShadow: isPressed ? '0 0 20px rgba(255, 255, 255, 0.3)' : undefined
                 }}
                 onClick={() => handleButtonPress(btn)}
               >
@@ -298,20 +300,24 @@ export default function Deck({ onNavigate }) {
                     <img src={btn.image} alt={btn.label} className="card-bg-image" />
                     <div className="card-content-overlay">
                       <div className="card-title">{btn.label}</div>
-                      <div className="card-keybind">{btn.sublabel || 'Add keybind'}</div>
+                      {!isSoundboard && btn.sublabel && (
+                        <div className="card-keybind">{btn.sublabel}</div>
+                      )}
                     </div>
                   </>
                 ) : (
                   <>
-                    <div className="thumb-img-wrapper" style={{ borderColor: isPressed ? '#8b5cf6' : 'rgba(255,255,255,0.08)' }}>
+                    <div className="thumb-img-wrapper">
                       {btn.image ? (
                         <img src={btn.image} alt={btn.label} />
                       ) : (
-                        <DynamicIcon name={btn.icon || 'CircleDot'} size={28} color={btn.color || '#8b5cf6'} />
+                        <DynamicIcon name={btn.icon || 'CircleDot'} size={28} color="#a3a3a3" />
                       )}
                     </div>
                     <div className="card-title" style={{ textAlign: 'center' }}>{btn.label}</div>
-                    <div className="card-keybind" style={{ textAlign: 'center' }}>{btn.sublabel || 'Add keybind'}</div>
+                    {!isSoundboard && btn.sublabel && (
+                      <div className="card-keybind" style={{ textAlign: 'center' }}>{btn.sublabel}</div>
+                    )}
                   </>
                 )}
               </div>
@@ -319,6 +325,7 @@ export default function Deck({ onNavigate }) {
           })}
         </div>
       </main>
+
 
 
       {/* Footer Branding */}

@@ -133,6 +133,23 @@ app.post('/api/upload-image', (req, res) => {
   }
 });
 
+app.post('/api/upload-sound', (req, res) => {
+  try {
+    const { filename, dataUrl } = req.body;
+    if (!filename || !dataUrl) return res.status(400).json({ error: 'Missing filename or dataUrl' });
+    const base64Data = dataUrl.replace(/^data:audio\/\w+;base64,/, '').replace(/^data:application\/\w+;base64,/, '');
+    const ext = path.extname(filename) || '.mp3';
+    const cleanName = `${Date.now()}_${path.basename(filename, ext).replace(/[^a-zA-Z0-9_-]/g, '')}${ext}`;
+    const filePath = path.join(SOUNDS_DIR, cleanName);
+    fs.writeFileSync(filePath, Buffer.from(base64Data, 'base64'));
+
+    res.json({ success: true, filename: cleanName, url: `/sounds/${cleanName}` });
+  } catch(err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+
 // Trigger action executor
 async function executeAction(action) {
   if (!action || !action.type) return { success: false, error: 'Invalid action' };
@@ -244,8 +261,8 @@ if (fs.existsSync(CLIENT_DIST)) {
 // Error handler
 server.on('error', (err) => {
   if (err.code === 'EADDRINUSE') {
-    console.error(`\n❌ [ERROR] Port ${PORT} sedang dipakai oleh proses lain!`);
-    console.error(`👉 Solusi: Tutup terminal server yang lama, atau jalankan perintah: taskkill /F /IM node.exe\n`);
+    console.error(`\n[ERROR] Port ${PORT} sedang dipakai oleh proses lain!`);
+    console.error(`Solusi: Tutup terminal server yang lama, atau jalankan perintah: taskkill /F /IM node.exe\n`);
     process.exit(1);
   } else {
     console.error('Server error:', err);
@@ -254,16 +271,16 @@ server.on('error', (err) => {
 
 // Start Server
 server.listen(PORT, '0.0.0.0', () => {
-
   console.clear();
   console.log('=================================================================');
-  console.log('  ⚡ MyStreamBoard Desktop Agent v1.0.0                          ');
+  console.log('  MyStreamBoard Desktop Agent v1.0.0                             ');
   console.log('  Copyright (c) 2026 Dzikri Arya Sahputra. All rights reserved.   ');
   console.log('  Commercial Proprietary Software                                ');
   console.log('=================================================================');
-  console.log(`\n  🖥️  Desktop Local URL : http://localhost:${PORT}`);
-  console.log(`  📱  Mobile Deck URL  : ${localUrl}`);
-  console.log('\n  📲  SCAN DARI HP KAMU UNTUK LANGSUNG TERHUBUNG:');
+  console.log(`\n  Desktop Local URL : http://localhost:${PORT}`);
+  console.log(`  Mobile Deck URL  : ${localUrl}`);
+  console.log('\n  SCAN DARI HP KAMU UNTUK LANGSUNG TERHUBUNG:');
+
 
   try {
     qrcodeTerminal.generate(localUrl, { small: true });
