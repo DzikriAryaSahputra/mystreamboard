@@ -18,6 +18,7 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 const CLIENT_DIST = path.resolve(__dirname, '../../client/dist');
 const SOUNDS_DIR = path.resolve(__dirname, '../../sounds');
+const UPLOADS_DIR = path.resolve(__dirname, '../../data/uploads');
 
 const PORT = process.env.PORT || 4829;
 const app = express();
@@ -25,10 +26,11 @@ const server = http.createServer(app);
 const wss = new WebSocketServer({ server });
 
 app.use(cors());
-app.use(express.json());
+app.use(express.json({ limit: '50mb' }));
 
-// Serve static sounds
+// Serve static sounds and uploaded card images
 app.use('/sounds', express.static(SOUNDS_DIR));
+app.use('/uploads', express.static(UPLOADS_DIR));
 
 // Serve compiled client if exists
 if (fs.existsSync(CLIENT_DIST)) {
@@ -108,6 +110,27 @@ app.post('/api/config', (req, res) => {
 
 app.get('/api/sounds', (req, res) => {
   res.json(listSounds());
+});
+
+app.post('/api/upload-image', (req, res) => {
+  try {
+    const { filename, dataUrl } = req.body;
+    if (!filename || !dataUrl) return res.status(400).json({ error: 'Missing filename or dataUrl' });
+    const base64Data = dataUrl.replace(/^data:image\/\w+;base64,/, '');
+    const ext = path.extname(filename) || '.png';
+    const cleanName = `${Date.now()}_${path.basename(filename, ext).replace(/[^a-zA-Z0-9_-]/g, '')}${ext}`;
+    const filePath = path.join(UPLOADS_DIR, cleanName);
+    fs.writeFileSync(filePath, Buffer.from(base64Data, 'base64'));
+
+    const clientUploadsPath = path.resolve(__dirname, '../../client/public/uploads', cleanName);
+    try {
+      fs.copyFileSync(filePath, clientUploadsPath);
+    } catch(e) {}
+
+    res.json({ success: true, url: `/uploads/${cleanName}` });
+  } catch(err) {
+    res.status(500).json({ error: err.message });
+  }
 });
 
 // Trigger action executor

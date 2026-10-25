@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100">
+  <defs>
+    <radialGradient id="obsGlow" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="#4f46e5"/>
+      <stop offset="100%" stop-color="#0f172a"/>
+    </radialGradient>
+  </defs>
+  <rect width="100" height="100" rx="24" fill="url(#obsGlow)"/>
+  <circle cx="50" cy="50" r="32" stroke="#6366f1" stroke-width="6" fill="none"/>
+  <circle cx="50" cy="50" r="14" fill="#ffffff"/>
+  <circle cx="68" cy="38" r="8" fill="#38bdf8"/>
+  <circle cx="34" cy="62" r="8" fill="#818cf8"/>
+  <circle cx="60" cy="66" r="8" fill="#a855f7"/>
+</svg>

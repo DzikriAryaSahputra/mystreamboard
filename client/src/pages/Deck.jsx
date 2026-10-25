@@ -268,40 +268,58 @@ export default function Deck({ onNavigate }) {
       {/* Main Stream Deck Grid */}
       <main style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '16px' }}>
         <div 
-          className="deck-grid"
           style={{
-            gridTemplateColumns: `repeat(${gridCols}, 1fr)`
+            display: 'grid',
+            gridTemplateColumns: `repeat(${gridCols}, 1fr)`,
+            gap: '14px',
+            width: '100%',
+            maxWidth: '1000px',
+            margin: '0 auto'
           }}
         >
           {activePage?.buttons?.map((btn) => {
             const isPressed = pressedBtnId === btn.id;
+            const isFullArtwork = btn.imageMode === 'full' && btn.image;
+
             return (
               <div
                 key={btn.id}
-                className={`deck-key ${isPressed ? 'active-pressed' : ''}`}
+                className={`deck-card ${isFullArtwork ? 'full-artwork' : 'thumb-artwork'} ${isPressed ? 'active-pressed' : ''}`}
                 style={{
-                  '--key-color': btn.color || '#3b82f6',
-                  transform: isPressed ? 'scale(0.92)' : 'none'
+                  '--border-focus': btn.color || '#8b5cf6',
+                  transform: isPressed ? 'scale(0.92)' : 'none',
+                  borderColor: isPressed ? '#8b5cf6' : undefined,
+                  boxShadow: isPressed ? '0 0 24px rgba(139, 92, 246, 0.6)' : undefined
                 }}
                 onClick={() => handleButtonPress(btn)}
               >
-                <div 
-                  className="key-icon-wrapper"
-                  style={{
-                    background: `${btn.color || '#3b82f6'}15`,
-                    color: btn.color || '#3b82f6',
-                    boxShadow: isPressed ? `0 0 20px ${btn.color || '#3b82f6'}` : 'none'
-                  }}
-                >
-                  <DynamicIcon name={btn.icon || 'CircleDot'} size={24} />
-                </div>
-                <div className="key-label">{btn.label}</div>
-                {btn.sublabel && <div className="key-sublabel">{btn.sublabel}</div>}
+                {isFullArtwork ? (
+                  <>
+                    <img src={btn.image} alt={btn.label} className="card-bg-image" />
+                    <div className="card-content-overlay">
+                      <div className="card-title">{btn.label}</div>
+                      <div className="card-keybind">{btn.sublabel || 'Add keybind'}</div>
+                    </div>
+                  </>
+                ) : (
+                  <>
+                    <div className="thumb-img-wrapper" style={{ borderColor: isPressed ? '#8b5cf6' : 'rgba(255,255,255,0.08)' }}>
+                      {btn.image ? (
+                        <img src={btn.image} alt={btn.label} />
+                      ) : (
+                        <DynamicIcon name={btn.icon || 'CircleDot'} size={28} color={btn.color || '#8b5cf6'} />
+                      )}
+                    </div>
+                    <div className="card-title" style={{ textAlign: 'center' }}>{btn.label}</div>
+                    <div className="card-keybind" style={{ textAlign: 'center' }}>{btn.sublabel || 'Add keybind'}</div>
+                  </>
+                )}
               </div>
             );
           })}
         </div>
       </main>
+
 
       {/* Footer Branding */}
       <footer style={{ padding: '8px 16px', textAlign: 'center', fontSize: '0.72rem', color: '#475569', borderTop: '1px solid rgba(255, 255, 255, 0.04)' }}>

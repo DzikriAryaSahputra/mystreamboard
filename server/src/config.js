@@ -8,9 +8,9 @@ const DATA_DIR = path.resolve(__dirname, '../../data');
 const CONFIG_FILE = path.join(DATA_DIR, 'profile.json');
 
 const DEFAULT_CONFIG = {
-  version: '1.0.0',
+  version: '1.1.0',
   owner: 'Dzikri Arya Sahputra',
-  activePageId: 'page_live',
+  activePageId: 'page_sound',
   obsSettings: {
     address: 'ws://127.0.0.1:4455',
     password: '',
@@ -18,45 +18,125 @@ const DEFAULT_CONFIG = {
   },
   pages: [
     {
-      id: 'page_live',
-      name: '🔴 Live Stream (OBS & TikTok)',
+      id: 'page_sound',
+      name: '🔊 Sounds & Memes',
+      category: 'Soundboard',
       gridCols: 4,
       gridRows: 3,
       buttons: [
-        { id: 'b_gameplay', row: 0, col: 0, label: 'Gameplay', sublabel: 'OBS Scene', icon: 'Gamepad2', color: '#3b82f6', action: { type: 'obs_scene', scene: 'Gameplay' } },
-        { id: 'b_chat', row: 0, col: 1, label: 'Chatting', sublabel: 'OBS Scene', icon: 'MessageSquare', color: '#8b5cf6', action: { type: 'obs_scene', scene: 'Just Chatting' } },
-        { id: 'b_brb', row: 0, col: 2, label: 'BRB', sublabel: 'OBS Scene', icon: 'Coffee', color: '#ec4899', action: { type: 'obs_scene', scene: 'BRB' } },
-        { id: 'b_rec', row: 0, col: 3, label: 'Rec Toggle', sublabel: 'OBS Rec', icon: 'CircleDot', color: '#dc2626', action: { type: 'obs_record' } },
+        { 
+          id: 'sb_sponge', 
+          row: 0, col: 0, 
+          label: 'minispong... have fun', 
+          sublabel: 'Add keybind', 
+          image: '/uploads/spongebob.jpg', 
+          imageMode: 'full', 
+          color: '#8b5cf6', 
+          volume: 80,
+          action: { type: 'sound', sound: 'applause.wav' } 
+        },
+        { 
+          id: 'sb_speed', 
+          row: 0, col: 1, 
+          label: 'speed HYPE!', 
+          sublabel: 'Add keybind', 
+          image: '/uploads/speed.jpg', 
+          imageMode: 'full', 
+          color: '#ec4899', 
+          volume: 100,
+          action: { type: 'sound', sound: 'airhorn.wav' } 
+        },
+        { 
+          id: 'sb_stay', 
+          row: 0, col: 2, 
+          label: 'Stay With Me', 
+          sublabel: 'Add keybind', 
+          image: '/uploads/synthwave.jpg', 
+          imageMode: 'full', 
+          color: '#6366f1', 
+          volume: 75,
+          action: { type: 'sound', sound: 'victory.wav' } 
+        },
+        { 
+          id: 'sb_boom', 
+          row: 0, col: 3, 
+          label: 'Vine Boom', 
+          sublabel: 'Add keybind', 
+          image: '/uploads/boom.svg', 
+          imageMode: 'thumbnail', 
+          color: '#ef4444', 
+          volume: 90,
+          action: { type: 'sound', sound: 'boom.wav' } 
+        },
+        { 
+          id: 'sb_rimshot', 
+          row: 1, col: 0, 
+          label: 'Ba-Dum-Tss', 
+          sublabel: 'Add keybind', 
+          icon: 'Drum', 
+          color: '#eab308', 
+          volume: 85,
+          action: { type: 'sound', sound: 'rimshot.wav' } 
+        },
+        { 
+          id: 'sb_victory', 
+          row: 1, col: 1, 
+          label: 'Victory Level Up', 
+          sublabel: 'Add keybind', 
+          icon: 'Trophy', 
+          color: '#10b981', 
+          volume: 80,
+          action: { type: 'sound', sound: 'victory.wav' } 
+        },
+        { 
+          id: 'sb_airhorn', 
+          row: 1, col: 2, 
+          label: 'Airhorn MLG', 
+          sublabel: 'Add keybind', 
+          icon: 'Megaphone', 
+          color: '#f97316', 
+          volume: 95,
+          action: { type: 'sound', sound: 'airhorn.wav' } 
+        },
+        { 
+          id: 'sb_stop', 
+          row: 1, col: 3, 
+          label: 'STOP ALL AUDIO', 
+          sublabel: 'Mute All', 
+          icon: 'Square', 
+          color: '#64748b', 
+          volume: 0,
+          action: { type: 'stop_sounds' } 
+        }
+      ]
+    },
+    {
+      id: 'page_live',
+      name: '🔴 OBS & TikTok Studio',
+      category: 'Live Stream',
+      gridCols: 4,
+      gridRows: 3,
+      buttons: [
+        { id: 'b_gameplay', row: 0, col: 0, label: 'Gameplay', sublabel: 'OBS Scene', image: '/uploads/obs.svg', imageMode: 'thumbnail', color: '#3b82f6', action: { type: 'obs_scene', scene: 'Gameplay' } },
+        { id: 'b_chat', row: 0, col: 1, label: 'Just Chatting', sublabel: 'OBS Scene', image: '/uploads/synthwave.jpg', imageMode: 'full', color: '#8b5cf6', action: { type: 'obs_scene', scene: 'Just Chatting' } },
+        { id: 'b_brb', row: 0, col: 2, label: 'BRB Screen', sublabel: 'OBS Scene', icon: 'Coffee', color: '#ec4899', action: { type: 'obs_scene', scene: 'BRB' } },
+        { id: 'b_rec', row: 0, col: 3, label: 'Record Toggle', sublabel: 'OBS Rec', icon: 'CircleDot', color: '#dc2626', action: { type: 'obs_record' } },
 
-        { id: 'b_mic', row: 1, col: 0, label: 'Mic Mute', sublabel: 'OBS Audio', icon: 'Mic', color: '#ef4444', action: { type: 'obs_mute', input: 'Mic/Aux' } },
-        { id: 'b_desk', row: 1, col: 1, label: 'Desktop Audio', sublabel: 'OBS Audio', icon: 'Volume2', color: '#f59e0b', action: { type: 'obs_mute', input: 'Desktop Audio' } },
-        { id: 'b_disc_mute', row: 1, col: 2, label: 'Discord Mute', sublabel: 'Ctrl+Shift+M', icon: 'Headphones', color: '#6366f1', action: { type: 'hotkey', keys: 'Ctrl+Shift+M' } },
-        { id: 'b_disc_deaf', row: 1, col: 3, label: 'Discord Deafen', sublabel: 'Ctrl+Shift+D', icon: 'VolumeX', color: '#a855f7', action: { type: 'hotkey', keys: 'Ctrl+Shift+D' } },
+        { id: 'b_mic', row: 1, col: 0, label: 'Mic Mute', sublabel: 'OBS Mic', icon: 'Mic', color: '#ef4444', action: { type: 'obs_mute', input: 'Mic/Aux' } },
+        { id: 'b_desk', row: 1, col: 1, label: 'Desktop Audio', sublabel: 'OBS Desktop', icon: 'Volume2', color: '#f59e0b', action: { type: 'obs_mute', input: 'Desktop Audio' } },
+        { id: 'b_disc_mute', row: 1, col: 2, label: 'Discord Mute', sublabel: 'Ctrl+Shift+M', image: '/uploads/discord.svg', imageMode: 'thumbnail', color: '#6366f1', action: { type: 'hotkey', keys: 'Ctrl+Shift+M' } },
+        { id: 'b_disc_deaf', row: 1, col: 3, label: 'Discord Deafen', sublabel: 'Ctrl+Shift+D', image: '/uploads/discord.svg', imageMode: 'thumbnail', color: '#a855f7', action: { type: 'hotkey', keys: 'Ctrl+Shift+D' } },
 
-        { id: 'b_tt_s1', row: 2, col: 0, label: 'TikTok Scene 1', sublabel: 'Ctrl+F1', icon: 'Video', color: '#06b6d4', action: { type: 'hotkey', keys: 'Ctrl+F1' } },
-        { id: 'b_tt_s2', row: 2, col: 1, label: 'TikTok Scene 2', sublabel: 'Ctrl+F2', icon: 'Tv', color: '#0ea5e9', action: { type: 'hotkey', keys: 'Ctrl+F2' } },
+        { id: 'b_tt_s1', row: 2, col: 0, label: 'TikTok Scene 1', sublabel: 'Ctrl+F1', image: '/uploads/tiktok.svg', imageMode: 'thumbnail', color: '#06b6d4', action: { type: 'hotkey', keys: 'Ctrl+F1' } },
+        { id: 'b_tt_s2', row: 2, col: 1, label: 'TikTok Scene 2', sublabel: 'Ctrl+F2', image: '/uploads/tiktok.svg', imageMode: 'thumbnail', color: '#0ea5e9', action: { type: 'hotkey', keys: 'Ctrl+F2' } },
         { id: 'b_tt_mute', row: 2, col: 2, label: 'TikTok Mic', sublabel: 'Ctrl+F3', icon: 'MicOff', color: '#f43f5e', action: { type: 'hotkey', keys: 'Ctrl+F3' } },
         { id: 'b_screen', row: 2, col: 3, label: 'Screenshot', sublabel: 'Win+Shift+S', icon: 'Camera', color: '#10b981', action: { type: 'hotkey', keys: 'Win+Shift+S' } }
       ]
     },
     {
-      id: 'page_sound',
-      name: '🔊 Soundboard FX',
-      gridCols: 3,
-      gridRows: 2,
-      buttons: [
-        { id: 'sb_airhorn', row: 0, col: 0, label: 'Airhorn', sublabel: 'FX', icon: 'Megaphone', color: '#f97316', action: { type: 'sound', sound: 'airhorn.wav' } },
-        { id: 'sb_rimshot', row: 0, col: 1, label: 'Ba-Dum-Tss', sublabel: 'Rimshot', icon: 'Drum', color: '#eab308', action: { type: 'sound', sound: 'rimshot.wav' } },
-        { id: 'sb_victory', row: 0, col: 2, label: 'Victory', sublabel: 'Fanfare', icon: 'Trophy', color: '#10b981', action: { type: 'sound', sound: 'victory.wav' } },
-
-        { id: 'sb_boom', row: 1, col: 0, label: 'Vine Boom', sublabel: 'Dramatic', icon: 'Bomb', color: '#ef4444', action: { type: 'sound', sound: 'boom.wav' } },
-        { id: 'sb_applause', row: 1, col: 1, label: 'Applause', sublabel: 'Cheering', icon: 'Sparkles', color: '#a855f7', action: { type: 'sound', sound: 'applause.wav' } },
-        { id: 'sb_stop', row: 1, col: 2, label: 'STOP AUDIO', sublabel: 'Mute All', icon: 'Square', color: '#64748b', action: { type: 'stop_sounds' } }
-      ]
-    },
-    {
       id: 'page_media',
       name: '🎵 Media & System Apps',
+      category: 'Productivity',
       gridCols: 4,
       gridRows: 3,
       buttons: [
@@ -70,8 +150,8 @@ const DEFAULT_CONFIG = {
         { id: 'm_taskmgr', row: 1, col: 2, label: 'Task Manager', sublabel: 'Ctrl+Shift+Esc', icon: 'Activity', color: '#8b5cf6', action: { type: 'hotkey', keys: 'Ctrl+Shift+Esc' } },
         { id: 'm_lock', row: 1, col: 3, label: 'Lock PC', sublabel: 'Win+L', icon: 'Lock', color: '#dc2626', action: { type: 'hotkey', keys: 'Win+L' } },
 
-        { id: 'app_obs', row: 2, col: 0, label: 'Open OBS', sublabel: 'App', icon: 'Radio', color: '#6366f1', action: { type: 'app', target: 'obs64.exe' } },
-        { id: 'app_discord', row: 2, col: 1, label: 'Open Discord', sublabel: 'App', icon: 'MessageCircle', color: '#8b5cf6', action: { type: 'app', target: 'discord' } },
+        { id: 'app_obs', row: 2, col: 0, label: 'Open OBS', sublabel: 'App', image: '/uploads/obs.svg', imageMode: 'thumbnail', color: '#6366f1', action: { type: 'app', target: 'obs64.exe' } },
+        { id: 'app_discord', row: 2, col: 1, label: 'Open Discord', sublabel: 'App', image: '/uploads/discord.svg', imageMode: 'thumbnail', color: '#8b5cf6', action: { type: 'app', target: 'discord' } },
         { id: 'app_browser', row: 2, col: 2, label: 'Browser', sublabel: 'Web', icon: 'Globe', color: '#f59e0b', action: { type: 'app', target: 'https://google.com' } },
         { id: 'app_spotify', row: 2, col: 3, label: 'Spotify', sublabel: 'App', icon: 'Music', color: '#10b981', action: { type: 'app', target: 'spotify' } }
       ]
@@ -86,7 +166,10 @@ export function loadConfig() {
     }
     if (fs.existsSync(CONFIG_FILE)) {
       const data = fs.readFileSync(CONFIG_FILE, 'utf-8');
-      return JSON.parse(data);
+      const parsed = JSON.parse(data);
+      if (parsed.version === DEFAULT_CONFIG.version) {
+        return parsed;
+      }
     }
   } catch (err) {
     console.error('[Config] Error reading profile.json, falling back to default:', err);

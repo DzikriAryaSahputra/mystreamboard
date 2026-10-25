@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import DynamicIcon from '../components/DynamicIcon';
 import { 
   SlidersHorizontal, 
@@ -8,38 +8,41 @@ import {
   Save, 
   Radio, 
   Volume2, 
+  VolumeX,
   Keyboard, 
   Sparkles, 
   QrCode, 
-  ExternalLink,
+  Search,
+  Upload,
+  Play,
+  Square,
+  RotateCcw,
   Check,
-  RefreshCw
+  Image as ImageIcon
 } from 'lucide-react';
 
-const PRESET_COLORS = [
-  '#3b82f6', '#06b6d4', '#8b5cf6', '#ec4899', 
-  '#ef4444', '#f59e0b', '#10b981', '#64748b'
+const FILTER_CATEGORIES = [
+  'All', 'Memes & Sounds', 'OBS Studio', 'TikTok Studio', 'Apps & Media'
 ];
 
-const PRESET_ICONS = [
-  'Gamepad2', 'MessageSquare', 'Coffee', 'CircleDot',
-  'Mic', 'MicOff', 'Volume2', 'VolumeX', 'Headphones',
-  'Video', 'Tv', 'Camera', 'Megaphone', 'Drum',
-  'Trophy', 'Bomb', 'Sparkles', 'Play', 'SkipForward',
-  'SkipBack', 'Music', 'Activity', 'Lock', 'Radio', 'Globe'
+const PRESET_COLORS = [
+  '#8b5cf6', '#6366f1', '#ec4899', '#06b6d4', 
+  '#ef4444', '#f59e0b', '#10b981', '#64748b'
 ];
 
 export default function Studio({ onNavigate }) {
   const [config, setConfig] = useState(null);
-  const [activePageId, setActivePageId] = useState('');
+  const [activeCategory, setActiveCategory] = useState('All');
+  const [searchQuery, setSearchQuery] = useState('');
+  const [selectedBtn, setSelectedBtn] = useState(null);
   const [serverInfo, setServerInfo] = useState(null);
   const [editingBtn, setEditingBtn] = useState(null);
-  const [obsAddress, setObsAddress] = useState('ws://127.0.0.1:4455');
-  const [obsPassword, setObsPassword] = useState('');
-  const [obsStatus, setObsStatus] = useState({ connected: false });
   const [showQrModal, setShowQrModal] = useState(false);
   const [saveSuccess, setSaveSuccess] = useState(false);
+  const [currentlyPlaying, setCurrentlyPlaying] = useState('None');
+  const [cardVolume, setCardVolume] = useState(80);
 
+  const fileInputRef = useRef(null);
   const serverHost = localStorage.getItem('mystreamboard_host') || window.location.hostname || '127.0.0.1';
   const serverPort = localStorage.getItem('mystreamboard_port') || window.location.port || '4829';
   const baseUrl = `http://${serverHost}:${serverPort}`;
@@ -48,28 +51,23 @@ export default function Studio({ onNavigate }) {
   useEffect(() => {
     fetch(`${baseUrl}/api/info`)
       .then(r => r.json())
-      .then(info => {
-        setServerInfo(info);
-        setObsStatus({ connected: info.obsConnected });
-      })
+      .then(info => setServerInfo(info))
       .catch(() => {});
 
     fetch(`${baseUrl}/api/config`)
       .then(r => r.json())
       .then(cfg => {
         setConfig(cfg);
-        setActivePageId(cfg.activePageId || cfg.pages?.[0]?.id);
-        if (cfg.obsSettings) {
-          setObsAddress(cfg.obsSettings.address || 'ws://127.0.0.1:4455');
-          setObsPassword(cfg.obsSettings.password || '');
+        const firstBtn = cfg.pages?.[0]?.buttons?.[0];
+        if (firstBtn) {
+          setSelectedBtn(firstBtn);
+          setCardVolume(firstBtn.volume || 80);
         }
       })
       .catch(() => {});
   }, [baseUrl]);
 
-  const activePage = config?.pages?.find(p => p.id === activePageId) || config?.pages?.[0];
-
-  // Save Config to Server
+  // Save config
   const handleSaveConfig = async (newCfg = config) => {
     try {
       const res = await fetch(`${baseUrl}/api/config`, {
@@ -86,306 +84,436 @@ export default function Studio({ onNavigate }) {
     }
   };
 
-  // Connect to OBS
-  const handleConnectObs = async () => {
-    try {
-      const res = await fetch(`${baseUrl}/api/obs/connect`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ address: obsAddress, password: obsPassword })
+  // Trigger Action
+  const handleTrigger = (btn) => {
+    if (!btn) return;
+    setCurrentlyPlaying(btn.label);
+    fetch(`${baseUrl}/api/trigger`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(btn.action)
+    }).catch(() => {});
+  };
+
+  // Stop All Audio
+  const handleStopAll = () => {
+    setCurrentlyPlaying('None');
+    fetch(`${baseUrl}/api/trigger`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ type: 'stop_sounds' })
+    }).catch(() => {});
+  };
+
+  // Handle Image Upload for Card
+  const handleUploadCustomImage = (e) => {
+    const file = e.target.files?.[0];
+    if (!file || !selectedBtn) return;
+
+    const reader = new FileReader();
+    reader.onload = async () => {
+      const dataUrl = reader.result;
+      try {
+        const res = await fetch(`${baseUrl}/api/upload-image`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ filename: file.name, dataUrl })
+        });
+        const data = await res.json();
+        if (data.success && data.url) {
+          const updatedBtn = { ...selectedBtn, image: data.url, imageMode: 'full' };
+          setSelectedBtn(updatedBtn);
+          updateButtonInConfig(updatedBtn);
+        }
+      } catch (err) {
+        console.error('Upload image error:', err);
+      }
+    };
+    reader.readAsDataURL(file);
+  };
+
+  // Update button in config state and save
+  const updateButtonInConfig = (updatedBtn) => {
+    if (!config) return;
+    const updatedPages = config.pages.map(p => ({
+      ...p,
+      buttons: p.buttons.map(b => b.id === updatedBtn.id ? updatedBtn : b)
+    }));
+    const newConfig = { ...config, pages: updatedPages };
+    setConfig(newConfig);
+    handleSaveConfig(newConfig);
+  };
+
+  // Filter Buttons
+  const getAllButtons = () => {
+    if (!config?.pages) return [];
+    let list = [];
+    config.pages.forEach(p => {
+      p.buttons?.forEach(b => {
+        list.push({ ...b, pageName: p.name, category: p.category || 'Soundboard' });
       });
-      const data = await res.json();
-      setObsStatus({ connected: data.success });
-      if (data.success) {
-        // update config obs settings
-        const updated = {
-          ...config,
-          obsSettings: { address: obsAddress, password: obsPassword, autoConnect: true }
-        };
-        setConfig(updated);
-        handleSaveConfig(updated);
-      }
-    } catch (e) {
-      console.error('OBS Connect Error:', e);
+    });
+
+    if (activeCategory === 'Memes & Sounds') {
+      list = list.filter(b => b.action?.type === 'sound' || b.pageName.includes('Sounds'));
+    } else if (activeCategory === 'OBS Studio') {
+      list = list.filter(b => b.action?.type?.startsWith('obs') || b.label.includes('OBS'));
+    } else if (activeCategory === 'TikTok Studio') {
+      list = list.filter(b => b.label.includes('TikTok') || b.sublabel?.includes('Ctrl+F'));
+    } else if (activeCategory === 'Apps & Media') {
+      list = list.filter(b => b.action?.type === 'app' || b.pageName.includes('Media'));
     }
+
+    if (searchQuery.trim()) {
+      const q = searchQuery.toLowerCase();
+      list = list.filter(b => b.label.toLowerCase().includes(q) || b.sublabel?.toLowerCase().includes(q));
+    }
+
+    return list;
   };
 
-  // Add a button to current page
-  const handleAddButton = () => {
-    if (!activePage) return;
-    const newBtn = {
-      id: `btn_${Date.now()}`,
-      label: 'New Button',
-      sublabel: 'Action',
-      icon: 'Sparkles',
-      color: '#3b82f6',
-      action: { type: 'hotkey', keys: 'F13' }
-    };
-
-    const updatedPages = config.pages.map(p => {
-      if (p.id === activePage.id) {
-        return { ...p, buttons: [...(p.buttons || []), newBtn] };
-      }
-      return p;
-    });
-
-    const updated = { ...config, pages: updatedPages };
-    setConfig(updated);
-    handleSaveConfig(updated);
-    setEditingBtn(newBtn);
-  };
-
-  // Update button in config
-  const handleSaveButtonModal = () => {
-    if (!editingBtn || !activePage) return;
-
-    const updatedPages = config.pages.map(p => {
-      if (p.id === activePage.id) {
-        const updatedButtons = p.buttons.map(b => b.id === editingBtn.id ? editingBtn : b);
-        return { ...p, buttons: updatedButtons };
-      }
-      return p;
-    });
-
-    const updated = { ...config, pages: updatedPages };
-    setConfig(updated);
-    handleSaveConfig(updated);
-    setEditingBtn(null);
-  };
-
-  // Delete button
-  const handleDeleteButton = (btnId) => {
-    if (!confirm('Hapus tombol ini?')) return;
-    const updatedPages = config.pages.map(p => {
-      if (p.id === activePage.id) {
-        return { ...p, buttons: p.buttons.filter(b => b.id !== btnId) };
-      }
-      return p;
-    });
-
-    const updated = { ...config, pages: updatedPages };
-    setConfig(updated);
-    handleSaveConfig(updated);
-    setEditingBtn(null);
-  };
-
-  // Add Page
-  const handleAddPage = () => {
-    const name = prompt('Nama Halaman Baru:');
-    if (!name) return;
-    const newPage = {
-      id: `page_${Date.now()}`,
-      name: name,
-      gridCols: 4,
-      gridRows: 3,
-      buttons: []
-    };
-    const updated = { ...config, pages: [...config.pages, newPage] };
-    setConfig(updated);
-    setActivePageId(newPage.id);
-    handleSaveConfig(updated);
-  };
+  const displayedButtons = getAllButtons();
 
   return (
-    <div style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column', background: '#07090e' }}>
-      {/* Studio Navigation Bar */}
+    <div style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column', background: '#080a12', paddingBottom: '70px' }}>
+      <div className="ambient-bg"></div>
+
+      {/* Top Navbar */}
       <header className="glass-nav" style={{ padding: '14px 24px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', zIndex: 10 }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '14px' }}>
-          <div style={{ width: '36px', height: '36px', borderRadius: '10px', background: 'linear-gradient(135deg, #3b82f6, #8b5cf6)', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 0 16px rgba(59, 130, 246, 0.4)' }}>
+        {/* Brand */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+          <div style={{ width: '36px', height: '36px', borderRadius: '12px', background: 'linear-gradient(135deg, #8b5cf6, #6366f1)', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 0 16px rgba(139, 92, 246, 0.45)' }}>
             <SlidersHorizontal size={20} color="#fff" />
           </div>
           <div>
-            <div style={{ fontSize: '1.15rem', fontWeight: '800', letterSpacing: '-0.02em', background: 'linear-gradient(90deg, #fff, #94a3b8)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>
-              MyStreamBoard Studio
+            <div style={{ fontSize: '1.15rem', fontWeight: '800', letterSpacing: '-0.02em', background: 'linear-gradient(90deg, #fff, #c084fc)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>
+              MyStreamBoard
             </div>
-            <div style={{ fontSize: '0.68rem', color: '#64748b', fontWeight: '600' }}>
-              PC DECK CONFIGURATOR & DASHBOARD
+            <div style={{ fontSize: '0.66rem', color: '#64748b', fontWeight: '600' }}>
+              STREAM DECK & SOUNDBOARD STUDIO
             </div>
           </div>
         </div>
 
+        {/* Search Bar */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', background: 'rgba(255, 255, 255, 0.05)', border: '1px solid rgba(255, 255, 255, 0.08)', borderRadius: '24px', padding: '6px 16px', width: '340px' }}>
+          <Search size={16} color="#64748b" />
+          <input 
+            type="text" 
+            placeholder="Search sounds, hotkeys, scenes..." 
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            style={{ background: 'transparent', border: 'none', color: '#fff', outline: 'none', fontSize: '0.85rem', width: '100%' }}
+          />
+        </div>
+
+        {/* Right Action Buttons */}
         <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-          {/* QR Code Quick Connect for Phone */}
+          <button 
+            className="btn-secondary" 
+            onClick={() => fileInputRef.current?.click()}
+            style={{ padding: '7px 14px', fontSize: '0.82rem' }}
+          >
+            <Upload size={15} color="#c084fc" />
+            <span>Upload Image / Sound</span>
+          </button>
+          <input 
+            type="file" 
+            ref={fileInputRef} 
+            onChange={handleUploadCustomImage} 
+            accept="image/*,audio/*" 
+            style={{ display: 'none' }} 
+          />
+
           <button 
             className="btn-secondary" 
             onClick={() => setShowQrModal(true)}
-            style={{ padding: '8px 14px', fontSize: '0.8rem' }}
+            style={{ padding: '7px 14px', fontSize: '0.82rem' }}
           >
-            <QrCode size={16} color="#06b6d4" />
+            <QrCode size={15} color="#06b6d4" />
             <span>Sambungkan HP</span>
           </button>
 
-          {/* Test Deck on this screen */}
           <button 
             className="btn-secondary" 
             onClick={() => onNavigate('deck')}
-            style={{ padding: '8px 14px', fontSize: '0.8rem' }}
+            style={{ padding: '7px 14px', fontSize: '0.82rem' }}
           >
-            <Smartphone size={16} color="#3b82f6" />
-            <span>Buka Deck Controller</span>
+            <Smartphone size={15} color="#8b5cf6" />
+            <span>Buka Deck di HP</span>
           </button>
 
-          {/* Save Status */}
           <button 
             className="btn-primary" 
             onClick={() => handleSaveConfig()}
-            style={{ padding: '8px 16px', fontSize: '0.8rem' }}
+            style={{ padding: '7px 16px', fontSize: '0.82rem' }}
           >
             {saveSuccess ? <Check size={16} /> : <Save size={16} />}
-            <span>{saveSuccess ? 'Tersimpan!' : 'Simpan Perubahan'}</span>
+            <span>{saveSuccess ? 'Tersimpan!' : 'Simpan'}</span>
           </button>
         </div>
       </header>
 
-      {/* Main Studio Workspace */}
+      {/* Main Workspace with Filter Bar, Cards Grid, and Right Inspector */}
       <div style={{ flex: 1, display: 'flex', overflow: 'hidden' }}>
-        {/* Left Sidebar: Pages & Integrations */}
-        <aside style={{ width: '320px', borderRight: '1px solid rgba(255, 255, 255, 0.06)', background: 'rgba(11, 14, 22, 0.6)', padding: '20px', display: 'flex', flexDirection: 'column', gap: '20px', overflowY: 'auto' }}>
+        
+        {/* Left Side: Filter Pills & Grid */}
+        <div style={{ flex: 1, padding: '24px 28px', display: 'flex', flexDirection: 'column', overflowY: 'auto' }}>
           
-          {/* Pages Manager */}
-          <div className="glass-panel" style={{ padding: '16px' }}>
-            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '12px' }}>
-              <span style={{ fontSize: '0.82rem', fontWeight: '800', color: '#94a3b8', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Halaman Deck</span>
+          {/* Category Filter Pills */}
+          <div className="filter-pills" style={{ marginBottom: '24px' }}>
+            {FILTER_CATEGORIES.map(cat => (
               <button 
-                onClick={handleAddPage}
-                style={{ background: 'none', border: 'none', color: '#3b82f6', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '4px', fontSize: '0.78rem', fontWeight: '700' }}
+                key={cat} 
+                className={`filter-pill ${activeCategory === cat ? 'active' : ''}`}
+                onClick={() => setActiveCategory(cat)}
               >
-                <Plus size={14} /> Tambah
+                {cat}
               </button>
-            </div>
-
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
-              {config?.pages?.map(p => (
-                <div 
-                  key={p.id}
-                  onClick={() => setActivePageId(p.id)}
-                  style={{
-                    padding: '10px 12px',
-                    borderRadius: '10px',
-                    background: p.id === activePageId ? 'rgba(59, 130, 246, 0.15)' : 'rgba(255, 255, 255, 0.02)',
-                    border: `1px solid ${p.id === activePageId ? 'rgba(59, 130, 246, 0.4)' : 'transparent'}`,
-                    color: p.id === activePageId ? '#fff' : '#94a3b8',
-                    cursor: 'pointer',
-                    fontSize: '0.85rem',
-                    fontWeight: '700',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'space-between'
-                  }}
-                >
-                  <span>{p.name}</span>
-                  <span style={{ fontSize: '0.7rem', color: '#64748b' }}>{p.buttons?.length || 0} tombol</span>
-                </div>
-              ))}
-            </div>
-          </div>
-
-          {/* OBS Studio Integration Settings */}
-          <div className="glass-panel" style={{ padding: '16px' }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '12px' }}>
-              <Radio size={16} color="#ef4444" />
-              <span style={{ fontSize: '0.82rem', fontWeight: '800', color: '#94a3b8', textTransform: 'uppercase', letterSpacing: '0.05em' }}>OBS Studio WebSocket</span>
-            </div>
-
-            <div style={{ marginBottom: '10px' }}>
-              <label style={{ display: 'block', fontSize: '0.72rem', color: '#64748b', marginBottom: '4px' }}>Server Address</label>
-              <input 
-                type="text" 
-                className="input-field" 
-                value={obsAddress} 
-                onChange={(e) => setObsAddress(e.target.value)} 
-                placeholder="ws://127.0.0.1:4455"
-                style={{ fontSize: '0.8rem', padding: '8px 10px' }}
-              />
-            </div>
-
-            <div style={{ marginBottom: '12px' }}>
-              <label style={{ display: 'block', fontSize: '0.72rem', color: '#64748b', marginBottom: '4px' }}>Password (kosong jika tanpa password)</label>
-              <input 
-                type="password" 
-                className="input-field" 
-                value={obsPassword} 
-                onChange={(e) => setObsPassword(e.target.value)} 
-                placeholder="Optional"
-                style={{ fontSize: '0.8rem', padding: '8px 10px' }}
-              />
-            </div>
-
-            <button 
-              className={obsStatus.connected ? 'btn-secondary' : 'btn-primary'}
-              onClick={handleConnectObs}
-              style={{ width: '100%', padding: '8px 12px', fontSize: '0.8rem' }}
-            >
-              <span style={{ width: '8px', height: '8px', borderRadius: '50%', background: obsStatus.connected ? '#10b981' : '#ef4444', display: 'inline-block', marginRight: '6px' }}></span>
-              {obsStatus.connected ? 'OBS Terhubung' : 'Sambungkan ke OBS'}
-            </button>
-          </div>
-
-          {/* Info Card */}
-          <div style={{ marginTop: 'auto', padding: '12px', borderRadius: '10px', background: 'rgba(255, 255, 255, 0.02)', border: '1px solid rgba(255, 255, 255, 0.05)', fontSize: '0.72rem', color: '#64748b' }}>
-            <div>MyStreamBoard v1.0.0</div>
-            <div>© 2026 Dzikri Arya Sahputra</div>
-            <div>Proprietary Commercial Software</div>
-          </div>
-        </aside>
-
-        {/* Center: Interactive Grid Layout Editor */}
-        <main style={{ flex: 1, padding: '24px', overflowY: 'auto', display: 'flex', flexDirection: 'column' }}>
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '18px' }}>
-            <div>
-              <h2 style={{ fontSize: '1.25rem', fontWeight: '800' }}>{activePage?.name || 'Pilih Halaman'}</h2>
-              <p style={{ fontSize: '0.8rem', color: '#64748b' }}>Klik tombol apa saja di bawah untuk mengedit fungsi shortcut, audio, atau tampilannya.</p>
-            </div>
-
-            <button className="btn-primary" onClick={handleAddButton} style={{ padding: '8px 16px', fontSize: '0.85rem' }}>
-              <Plus size={16} /> Tambah Tombol
-            </button>
-          </div>
-
-          {/* Interactive Button Grid */}
-          <div 
-            className="deck-grid" 
-            style={{ 
-              gridTemplateColumns: `repeat(${activePage?.gridCols || 4}, 1fr)`,
-              maxWidth: '900px',
-              margin: '0 auto',
-              width: '100%'
-            }}
-          >
-            {activePage?.buttons?.map((btn) => (
-              <div 
-                key={btn.id}
-                className="deck-key"
-                style={{ '--key-color': btn.color || '#3b82f6' }}
-                onClick={() => setEditingBtn({ ...btn })}
-              >
-                <div 
-                  className="key-icon-wrapper"
-                  style={{
-                    background: `${btn.color || '#3b82f6'}15`,
-                    color: btn.color || '#3b82f6'
-                  }}
-                >
-                  <DynamicIcon name={btn.icon || 'CircleDot'} size={24} />
-                </div>
-                <div className="key-label">{btn.label}</div>
-                {btn.sublabel && <div className="key-sublabel">{btn.sublabel}</div>}
-              </div>
             ))}
           </div>
-        </main>
+
+          {/* Cards Grid (MagicMic / Stream Deck Style) */}
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(135px, 1fr))', gap: '16px' }}>
+            {displayedButtons.map(btn => {
+              const isSelected = selectedBtn?.id === btn.id;
+              const isFullArtwork = btn.imageMode === 'full' && btn.image;
+
+              return (
+                <div
+                  key={btn.id}
+                  className={`deck-card ${isFullArtwork ? 'full-artwork' : 'thumb-artwork'} ${isSelected ? 'card-selected' : ''}`}
+                  onClick={() => {
+                    setSelectedBtn(btn);
+                    setCardVolume(btn.volume || 80);
+                    handleTrigger(btn);
+                  }}
+                  style={{ '--border-focus': btn.color || '#8b5cf6' }}
+                >
+                  {isFullArtwork ? (
+                    <>
+                      <img src={btn.image} alt={btn.label} className="card-bg-image" />
+                      <div className="card-content-overlay">
+                        <div className="card-title">{btn.label}</div>
+                        <div className="card-keybind">{btn.sublabel || 'Add keybind'}</div>
+                      </div>
+                    </>
+                  ) : (
+                    <>
+                      <div className="thumb-img-wrapper" style={{ borderColor: isSelected ? '#8b5cf6' : 'rgba(255,255,255,0.08)' }}>
+                        {btn.image ? (
+                          <img src={btn.image} alt={btn.label} />
+                        ) : (
+                          <DynamicIcon name={btn.icon || 'CircleDot'} size={28} color={btn.color || '#8b5cf6'} />
+                        )}
+                      </div>
+                      <div className="card-title" style={{ textAlign: 'center' }}>{btn.label}</div>
+                      <div className="card-keybind" style={{ textAlign: 'center' }}>{btn.sublabel || 'Add keybind'}</div>
+                    </>
+                  )}
+                </div>
+              );
+            })}
+
+            {/* Add New Card Button */}
+            <div 
+              className="deck-card thumb-artwork" 
+              onClick={() => {
+                const newBtn = {
+                  id: `card_${Date.now()}`,
+                  label: 'New Sound/Action',
+                  sublabel: 'Add keybind',
+                  icon: 'Sparkles',
+                  imageMode: 'thumbnail',
+                  color: '#8b5cf6',
+                  volume: 80,
+                  action: { type: 'sound', sound: 'airhorn.wav' }
+                };
+                const updated = {
+                  ...config,
+                  pages: config.pages.map((p, idx) => idx === 0 ? { ...p, buttons: [...p.buttons, newBtn] } : p)
+                };
+                setConfig(updated);
+                setSelectedBtn(newBtn);
+                handleSaveConfig(updated);
+              }}
+              style={{ borderStyle: 'dashed', borderColor: 'rgba(255,255,255,0.15)', background: 'rgba(255,255,255,0.02)' }}
+            >
+              <div className="thumb-img-wrapper" style={{ background: 'transparent', border: 'none' }}>
+                <Plus size={28} color="#94a3b8" />
+              </div>
+              <div className="card-title" style={{ color: '#94a3b8', textAlign: 'center' }}>Tambah Card</div>
+              <div className="card-keybind">Klik Disini</div>
+            </div>
+          </div>
+        </div>
+
+        {/* Right Inspector Sidebar (MagicMic Style) */}
+        {selectedBtn && (
+          <aside style={{ width: '310px', background: '#0b0e1b', borderLeft: '1px solid rgba(255,255,255,0.07)', padding: '24px', display: 'flex', flexDirection: 'column', gap: '20px', overflowY: 'auto' }}>
+            
+            {/* Big Avatar / Full Card Preview */}
+            <div style={{ textAlign: 'center' }}>
+              <div style={{ width: '110px', height: '110px', margin: '0 auto 14px', borderRadius: '20px', overflow: 'hidden', background: '#12162a', border: '2px solid #8b5cf6', boxShadow: '0 0 24px rgba(139, 92, 246, 0.35)', position: 'relative' }}>
+                {selectedBtn.image ? (
+                  <img src={selectedBtn.image} alt={selectedBtn.label} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                ) : (
+                  <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                    <DynamicIcon name={selectedBtn.icon || 'Sparkles'} size={48} color={selectedBtn.color || '#8b5cf6'} />
+                  </div>
+                )}
+              </div>
+
+              <h3 style={{ fontSize: '1rem', fontWeight: '800', marginBottom: '4px', color: '#fff' }}>{selectedBtn.label}</h3>
+              <div style={{ fontSize: '0.72rem', color: '#8b5cf6', fontWeight: '700', textTransform: 'uppercase', letterSpacing: '0.04em' }}>
+                {selectedBtn.sublabel || 'Add keybind'}
+              </div>
+            </div>
+
+            {/* Volume Slider Control */}
+            <div className="glass-panel" style={{ padding: '14px' }}>
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '8px' }}>
+                <span style={{ fontSize: '0.75rem', fontWeight: '700', color: '#94a3b8' }}>Volume</span>
+                <span style={{ fontSize: '0.75rem', fontWeight: '800', color: '#c084fc', fontFamily: 'var(--font-mono)' }}>{cardVolume}</span>
+              </div>
+              <input 
+                type="range" 
+                min="0" 
+                max="100" 
+                value={cardVolume} 
+                onChange={(e) => {
+                  const v = parseInt(e.target.value);
+                  setCardVolume(v);
+                  const updated = { ...selectedBtn, volume: v, action: { ...selectedBtn.action, volume: v / 100 } };
+                  setSelectedBtn(updated);
+                  updateButtonInConfig(updated);
+                }}
+                className="custom-slider" 
+              />
+            </div>
+
+            {/* Play Operations */}
+            <div className="glass-panel" style={{ padding: '14px' }}>
+              <div style={{ fontSize: '0.75rem', fontWeight: '700', color: '#94a3b8', marginBottom: '10px' }}>Play operations</div>
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-around' }}>
+                <button className="op-btn" onClick={() => handleTrigger(selectedBtn)} title="Play">
+                  <Play size={16} fill="#fff" />
+                </button>
+                <button className="op-btn" onClick={handleStopAll} title="Stop">
+                  <Square size={16} fill="#fff" />
+                </button>
+                <button className="op-btn" onClick={() => handleTrigger(selectedBtn)} title="Replay">
+                  <RotateCcw size={16} />
+                </button>
+              </div>
+            </div>
+
+            {/* Card Layout & Image Controls */}
+            <div className="glass-panel" style={{ padding: '14px', display: 'flex', flexDirection: 'column', gap: '12px' }}>
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                <span style={{ fontSize: '0.78rem', fontWeight: '700', color: '#f8fafc' }}>Full 1 Card Image</span>
+                <label className="switch">
+                  <input 
+                    type="checkbox" 
+                    checked={selectedBtn.imageMode === 'full'} 
+                    onChange={(e) => {
+                      const updated = { ...selectedBtn, imageMode: e.target.checked ? 'full' : 'thumbnail' };
+                      setSelectedBtn(updated);
+                      updateButtonInConfig(updated);
+                    }}
+                  />
+                  <span className="slider-switch"></span>
+                </label>
+              </div>
+
+              <div style={{ display: 'flex', gap: '8px' }}>
+                <button 
+                  className="btn-secondary" 
+                  onClick={() => fileInputRef.current?.click()}
+                  style={{ flex: 1, padding: '8px', fontSize: '0.75rem', justifyContent: 'center' }}
+                >
+                  <ImageIcon size={14} /> Ganti PNG
+                </button>
+                <button 
+                  className="btn-primary" 
+                  onClick={() => setEditingBtn({ ...selectedBtn })}
+                  style={{ flex: 1, padding: '8px', fontSize: '0.75rem', justifyContent: 'center' }}
+                >
+                  Edit Detail
+                </button>
+              </div>
+            </div>
+
+            {/* Delete Button */}
+            <button 
+              onClick={() => {
+                if (!confirm(`Hapus tombol "${selectedBtn.label}"?`)) return;
+                const updatedPages = config.pages.map(p => ({
+                  ...p,
+                  buttons: p.buttons.filter(b => b.id !== selectedBtn.id)
+                }));
+                const newCfg = { ...config, pages: updatedPages };
+                setConfig(newCfg);
+                setSelectedBtn(newCfg.pages[0]?.buttons[0] || null);
+                handleSaveConfig(newCfg);
+              }}
+              style={{ background: 'none', border: 'none', color: '#ef4444', fontSize: '0.75rem', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px', cursor: 'pointer', marginTop: 'auto' }}
+            >
+              <Trash2 size={14} /> Hapus Tombol Ini
+            </button>
+          </aside>
+        )}
       </div>
 
-      {/* Button Edit Modal */}
+      {/* Bottom Control Bar (MagicMic / Spotify Style) */}
+      <footer className="bottom-player-bar">
+        <div style={{ display: 'flex', alignItems: 'center', gap: '14px' }}>
+          <div style={{ width: '40px', height: '40px', borderRadius: '10px', background: '#191f3a', display: 'flex', alignItems: 'center', justifyContent: 'center', border: '1px solid rgba(255,255,255,0.08)' }}>
+            <Sparkles size={20} color="#8b5cf6" />
+          </div>
+          <div>
+            <div style={{ fontSize: '0.88rem', fontWeight: '800', color: '#fff' }}>
+              {currentlyPlaying}
+            </div>
+            <div style={{ fontSize: '0.68rem', color: '#64748b' }}>
+              MyStreamBoard Audio Output
+            </div>
+          </div>
+        </div>
+
+        {/* Center / Right controls */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: '20px' }}>
+          <button 
+            className="btn-secondary" 
+            onClick={handleStopAll}
+            style={{ padding: '6px 14px', fontSize: '0.78rem', color: '#ef4444', borderColor: 'rgba(239, 68, 68, 0.3)' }}
+          >
+            <Square size={14} fill="#ef4444" />
+            <span>Stop Audio</span>
+          </button>
+
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', width: '160px' }}>
+            <Volume2 size={16} color="#94a3b8" />
+            <input 
+              type="range" 
+              min="0" 
+              max="100" 
+              defaultValue="80" 
+              className="custom-slider" 
+            />
+          </div>
+        </div>
+      </footer>
+
+      {/* Button Detail Configuration Modal */}
       {editingBtn && (
         <div className="modal-overlay" onClick={() => setEditingBtn(null)}>
           <div className="modal-content" onClick={(e) => e.stopPropagation()}>
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '16px' }}>
-              <h3 style={{ fontSize: '1.1rem', fontWeight: '800' }}>Edit Tombol Stream Deck</h3>
+              <h3 style={{ fontSize: '1.1rem', fontWeight: '800' }}>Konfigurasi Tombol & Shortcut</h3>
               <button onClick={() => setEditingBtn(null)} style={{ background: 'none', border: 'none', color: '#64748b', cursor: 'pointer' }}>✕</button>
             </div>
 
-            {/* Label & Sublabel */}
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px', marginBottom: '14px' }}>
               <div>
                 <label style={{ display: 'block', fontSize: '0.75rem', fontWeight: '700', color: '#94a3b8', marginBottom: '6px' }}>Nama Tombol</label>
@@ -407,53 +535,6 @@ export default function Studio({ onNavigate }) {
               </div>
             </div>
 
-            {/* Color Swatches */}
-            <div style={{ marginBottom: '16px' }}>
-              <label style={{ display: 'block', fontSize: '0.75rem', fontWeight: '700', color: '#94a3b8', marginBottom: '6px' }}>Warna Aksen</label>
-              <div style={{ display: 'flex', gap: '8px' }}>
-                {PRESET_COLORS.map(c => (
-                  <div 
-                    key={c}
-                    onClick={() => setEditingBtn({ ...editingBtn, color: c })}
-                    style={{
-                      width: '28px',
-                      height: '28px',
-                      borderRadius: '8px',
-                      background: c,
-                      cursor: 'pointer',
-                      border: editingBtn.color === c ? '2px solid #fff' : '2px solid transparent',
-                      boxShadow: editingBtn.color === c ? `0 0 10px ${c}` : 'none'
-                    }}
-                  />
-                ))}
-              </div>
-            </div>
-
-            {/* Icon Picker */}
-            <div style={{ marginBottom: '16px' }}>
-              <label style={{ display: 'block', fontSize: '0.75rem', fontWeight: '700', color: '#94a3b8', marginBottom: '6px' }}>Pilih Ikon</label>
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', gap: '6px', maxHeight: '110px', overflowY: 'auto', background: 'rgba(0,0,0,0.2)', padding: '8px', borderRadius: '8px' }}>
-                {PRESET_ICONS.map(iconName => (
-                  <div 
-                    key={iconName}
-                    onClick={() => setEditingBtn({ ...editingBtn, icon: iconName })}
-                    style={{
-                      aspectRatio: '1/1',
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      borderRadius: '6px',
-                      cursor: 'pointer',
-                      background: editingBtn.icon === iconName ? 'rgba(59, 130, 246, 0.3)' : 'transparent',
-                      color: editingBtn.icon === iconName ? '#3b82f6' : '#94a3b8'
-                    }}
-                  >
-                    <DynamicIcon name={iconName} size={18} />
-                  </div>
-                ))}
-              </div>
-            </div>
-
             {/* Action Configuration */}
             <div style={{ marginBottom: '20px' }}>
               <label style={{ display: 'block', fontSize: '0.75rem', fontWeight: '700', color: '#94a3b8', marginBottom: '6px' }}>Tipe Aksi</label>
@@ -472,9 +553,9 @@ export default function Studio({ onNavigate }) {
                 }}
                 style={{ marginBottom: '10px' }}
               >
-                <option value="hotkey">Keyboard Hotkey / Shortcut (TikTok Studio, Discord, Game)</option>
-                <option value="sound">Soundboard (Putar Suara Efek)</option>
+                <option value="sound">Soundboard (Putar Efek Suara MP3/WAV)</option>
                 <option value="stop_sounds">Stop Semua Audio Soundboard</option>
+                <option value="hotkey">Keyboard Hotkey / Shortcut (TikTok Studio, Discord, Game)</option>
                 <option value="obs_scene">OBS Studio: Ganti Scene</option>
                 <option value="obs_mute">OBS Studio: Toggle Mute Audio</option>
                 <option value="obs_record">OBS Studio: Toggle Recording</option>
@@ -482,7 +563,6 @@ export default function Studio({ onNavigate }) {
                 <option value="app">Buka Program / Aplikasi / URL</option>
               </select>
 
-              {/* Dynamic Action Fields */}
               {editingBtn.action?.type === 'hotkey' && (
                 <div>
                   <label style={{ display: 'block', fontSize: '0.72rem', color: '#64748b', marginBottom: '4px' }}>Kombinasi Tombol (misal: Ctrl+F1, Ctrl+Shift+M, Win+Shift+S)</label>
@@ -511,80 +591,43 @@ export default function Studio({ onNavigate }) {
                   </select>
                 </div>
               )}
-
-              {editingBtn.action?.type === 'obs_scene' && (
-                <div>
-                  <label style={{ display: 'block', fontSize: '0.72rem', color: '#64748b', marginBottom: '4px' }}>Nama Scene OBS</label>
-                  <input 
-                    type="text" 
-                    className="input-field" 
-                    value={editingBtn.action.scene || ''} 
-                    onChange={(e) => setEditingBtn({ ...editingBtn, action: { ...editingBtn.action, scene: e.target.value } })}
-                  />
-                </div>
-              )}
-
-              {editingBtn.action?.type === 'obs_mute' && (
-                <div>
-                  <label style={{ display: 'block', fontSize: '0.72rem', color: '#64748b', marginBottom: '4px' }}>Nama Audio Source di OBS</label>
-                  <input 
-                    type="text" 
-                    className="input-field" 
-                    value={editingBtn.action.input || 'Mic/Aux'} 
-                    onChange={(e) => setEditingBtn({ ...editingBtn, action: { ...editingBtn.action, input: e.target.value } })}
-                  />
-                </div>
-              )}
-
-              {editingBtn.action?.type === 'app' && (
-                <div>
-                  <label style={{ display: 'block', fontSize: '0.72rem', color: '#64748b', marginBottom: '4px' }}>Path Aplikasi / File / URL Website</label>
-                  <input 
-                    type="text" 
-                    className="input-field" 
-                    value={editingBtn.action.target || ''} 
-                    onChange={(e) => setEditingBtn({ ...editingBtn, action: { ...editingBtn.action, target: e.target.value } })}
-                    placeholder="misal: obs64.exe atau https://twitch.tv"
-                  />
-                </div>
-              )}
             </div>
 
-            {/* Modal Actions */}
-            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', borderTop: '1px solid rgba(255,255,255,0.08)', paddingTop: '16px' }}>
+            <div style={{ display: 'flex', gap: '8px', justifyContent: 'flex-end' }}>
+              <button className="btn-secondary" onClick={() => setEditingBtn(null)}>Batal</button>
               <button 
-                onClick={() => handleDeleteButton(editingBtn.id)}
-                style={{ background: 'none', border: 'none', color: '#ef4444', display: 'flex', alignItems: 'center', gap: '6px', cursor: 'pointer', fontSize: '0.85rem' }}
+                className="btn-primary" 
+                onClick={() => {
+                  setSelectedBtn(editingBtn);
+                  updateButtonInConfig(editingBtn);
+                  setEditingBtn(null);
+                }}
               >
-                <Trash2 size={16} /> Hapus
+                Simpan
               </button>
-              <div style={{ display: 'flex', gap: '8px' }}>
-                <button className="btn-secondary" onClick={() => setEditingBtn(null)}>Batal</button>
-                <button className="btn-primary" onClick={handleSaveButtonModal}>Simpan Tombol</button>
-              </div>
             </div>
           </div>
         </div>
       )}
 
-      {/* Connect QR Code Modal */}
+      {/* QR Code Modal for Phone Connection */}
       {showQrModal && (
         <div className="modal-overlay" onClick={() => setShowQrModal(false)}>
           <div className="modal-content" style={{ textAlign: 'center' }} onClick={(e) => e.stopPropagation()}>
             <h3 style={{ fontSize: '1.2rem', fontWeight: '800', marginBottom: '8px' }}>Sambungkan Smartphone Kamu</h3>
             <p style={{ fontSize: '0.82rem', color: '#94a3b8', marginBottom: '18px' }}>
-              Pastikan HP dan PC berada dalam jaringan Wi-Fi yang sama, lalu scan QR Code di bawah dengan kamera HP:
+              Buka kamera di HP kamu lalu scan QR Code di bawah untuk langsung membuka controller:
             </p>
 
             {serverInfo?.qrDataUrl ? (
-              <div style={{ background: '#fff', padding: '16px', borderRadius: '16px', display: 'inline-block', marginBottom: '16px', boxShadow: '0 0 20px rgba(59, 130, 246, 0.4)' }}>
+              <div style={{ background: '#fff', padding: '16px', borderRadius: '16px', display: 'inline-block', marginBottom: '16px', boxShadow: '0 0 24px rgba(139, 92, 246, 0.4)' }}>
                 <img src={serverInfo.qrDataUrl} alt="QR Code" style={{ width: '220px', height: '220px', display: 'block' }} />
               </div>
             ) : (
               <div style={{ padding: '40px', color: '#64748b' }}>Memuat QR Code...</div>
             )}
 
-            <div style={{ fontSize: '0.85rem', color: '#f8fafc', background: 'rgba(255,255,255,0.05)', padding: '10px 14px', borderRadius: '10px', display: 'inline-block', marginBottom: '18px', fontFamily: 'var(--font-mono)' }}>
+            <div style={{ fontSize: '0.85rem', color: '#c084fc', background: 'rgba(255,255,255,0.05)', padding: '10px 14px', borderRadius: '10px', display: 'inline-block', marginBottom: '18px', fontFamily: 'var(--font-mono)' }}>
               {serverInfo?.url || `http://${serverHost}:${serverPort}`}
             </div>
 
