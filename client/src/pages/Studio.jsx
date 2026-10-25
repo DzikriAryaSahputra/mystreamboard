@@ -562,8 +562,11 @@ export default function Studio({ onNavigate }) {
           <div className="modal-content" onClick={(e) => e.stopPropagation()}>
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '18px' }}>
               <h3 style={{ fontSize: '1.1rem', fontWeight: '800', color: '#fff' }}>Tambah Card Baru</h3>
-              <button onClick={() => setShowAddChoiceModal(false)} style={{ background: 'none', border: 'none', color: '#737373', cursor: 'pointer' }}>✕</button>
+              <button onClick={() => setShowAddChoiceModal(false)} style={{ background: 'none', border: 'none', color: '#737373', cursor: 'pointer', padding: '4px' }}>
+                <X size={18} />
+              </button>
             </div>
+
 
             <p style={{ fontSize: '0.82rem', color: '#a3a3a3', marginBottom: '18px' }}>
               Pilih tipe fungsi kartu yang ingin kamu buat:
@@ -621,8 +624,11 @@ export default function Studio({ onNavigate }) {
               <h3 style={{ fontSize: '1.1rem', fontWeight: '800', color: '#fff' }}>
                 Konfigurasi Card {creationType}
               </h3>
-              <button onClick={() => setCreationType(null)} style={{ background: 'none', border: 'none', color: '#737373', cursor: 'pointer' }}>✕</button>
+              <button onClick={() => setCreationType(null)} style={{ background: 'none', border: 'none', color: '#737373', cursor: 'pointer', padding: '4px' }}>
+                <X size={18} />
+              </button>
             </div>
+
 
             {/* Nama Card */}
             <div style={{ marginBottom: '14px' }}>

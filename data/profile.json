@@ -10,7 +10,7 @@
   "pages": [
     {
       "id": "page_sound",
-      "name": "🔊 Sounds & Memes",
+      "name": "Soundboard",
       "category": "Soundboard",
       "gridCols": 4,
       "gridRows": 3,
@@ -135,7 +135,7 @@
     },
     {
       "id": "page_live",
-      "name": "🔴 OBS & TikTok Studio",
+      "name": "Stream",
       "category": "Live Stream",
       "gridCols": 4,
       "gridRows": 3,
@@ -305,7 +305,7 @@
     },
     {
       "id": "page_media",
-      "name": "🎵 Media & System Apps",
+      "name": "Apps",
       "category": "Productivity",
       "gridCols": 4,
       "gridRows": 3,

@@ -10,8 +10,11 @@ import {
   VolumeX, 
   Circle, 
   SlidersHorizontal,
-  ExternalLink
+  ExternalLink,
+  Layers,
+  X
 } from 'lucide-react';
+
 
 export default function Deck({ onNavigate }) {
   const [serverHost, setServerHost] = useState(() => {
@@ -242,6 +245,22 @@ export default function Deck({ onNavigate }) {
         <div style={{ padding: '10px 16px', display: 'flex', gap: '8px', overflowX: 'auto', borderBottom: '1px solid #1c1c1c', background: '#0a0a0a' }}>
           {config.pages.map((p) => {
             const isActive = p.id === activePageId;
+            let TabIcon = SlidersHorizontal;
+            let tabTitle = 'Page';
+            const lower = (p.name + ' ' + (p.category || '')).toLowerCase();
+            if (lower.includes('sound')) {
+              TabIcon = Volume2;
+              tabTitle = 'Soundboard';
+            } else if (lower.includes('stream') || lower.includes('live') || lower.includes('obs')) {
+              TabIcon = Radio;
+              tabTitle = 'Stream';
+            } else if (lower.includes('app') || lower.includes('media')) {
+              TabIcon = Layers;
+              tabTitle = 'Apps';
+            } else {
+              tabTitle = p.name.replace(/\p{Extended_Pictographic}|\p{Emoji}/gu, '').trim();
+            }
+
             return (
               <button
                 key={p.id}
@@ -257,15 +276,21 @@ export default function Deck({ onNavigate }) {
                   whiteSpace: 'nowrap',
                   cursor: 'pointer',
                   transition: 'all 0.2s',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '6px',
                   boxShadow: isActive ? '0 0 10px rgba(255, 255, 255, 0.2)' : 'none'
                 }}
               >
-                {p.name}
+                <TabIcon size={14} color={isActive ? '#080808' : '#737373'} />
+                <span>{tabTitle}</span>
               </button>
             );
+
           })}
         </div>
       )}
+
 
       {/* Main Stream Deck Grid */}
       <main style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '16px' }}>
@@ -342,7 +367,10 @@ export default function Deck({ onNavigate }) {
                 <Settings size={20} color="#3b82f6" />
                 <h3 style={{ fontSize: '1.1rem', fontWeight: '800' }}>Pengaturan Server HP</h3>
               </div>
-              <button onClick={() => setShowSettings(false)} style={{ background: 'none', border: 'none', color: '#64748b', cursor: 'pointer', fontSize: '1.2rem' }}>✕</button>
+              <button onClick={() => setShowSettings(false)} style={{ background: 'none', border: 'none', color: '#64748b', cursor: 'pointer', padding: '4px' }}>
+                <X size={18} />
+              </button>
+
             </div>
 
             <p style={{ fontSize: '0.82rem', color: '#94a3b8', marginBottom: '16px', lineHeight: '1.5' }}>
