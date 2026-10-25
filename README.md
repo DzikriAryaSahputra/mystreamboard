@@ -49,7 +49,10 @@
 ### 2. Instalasi & Menjalankan Server
 Buka terminal / PowerShell di folder project:
 ```bash
-# Jalankan Desktop Server Agent
+# 1. Install seluruh dependensi server & client secara otomatis
+npm run setup
+
+# 2. Jalankan Desktop Server Agent
 npm start
 ```
 

@@ -1,5 +1,5 @@
 {
-  "version": "1.1.0",
+  "version": "1.2.0",
   "owner": "Dzikri Arya Sahputra",
   "activePageId": "page_sound",
   "obsSettings": {
@@ -19,113 +19,128 @@
           "id": "sb_sponge",
           "row": 0,
           "col": 0,
+          "category": "Soundboard",
           "label": "minispong... have fun",
-          "sublabel": "Add keybind",
+          "sublabel": "",
           "image": "/uploads/spongebob.jpg",
           "imageMode": "full",
-          "color": "#8b5cf6",
-          "volume": 8,
+          "color": "#1c1c1c",
+          "volume": 80,
           "action": {
             "type": "sound",
             "sound": "applause.wav",
-            "volume": 0.08
+            "volume": 0.8
           }
         },
         {
           "id": "sb_speed",
           "row": 0,
           "col": 1,
-          "label": "speed HYPE!",
-          "sublabel": "Add keybind",
+          "category": "Soundboard",
+          "label": "Speed Hype",
+          "sublabel": "",
           "image": "/uploads/speed.jpg",
           "imageMode": "full",
-          "color": "#ec4899",
+          "color": "#1c1c1c",
           "volume": 100,
           "action": {
             "type": "sound",
-            "sound": "airhorn.wav"
+            "sound": "airhorn.wav",
+            "volume": 1
           }
         },
         {
           "id": "sb_stay",
           "row": 0,
           "col": 2,
+          "category": "Soundboard",
           "label": "Stay With Me",
-          "sublabel": "Add keybind",
+          "sublabel": "",
           "image": "/uploads/synthwave.jpg",
           "imageMode": "full",
-          "color": "#6366f1",
+          "color": "#1c1c1c",
           "volume": 75,
           "action": {
             "type": "sound",
-            "sound": "victory.wav"
-          }
+            "sound": "victory.wav",
+            "volume": 0.75
+          },
+          "pageName": "Soundboard"
         },
         {
           "id": "sb_boom",
           "row": 0,
           "col": 3,
+          "category": "Soundboard",
           "label": "Vine Boom",
-          "sublabel": "Add keybind",
+          "sublabel": "",
           "image": "/uploads/boom.svg",
           "imageMode": "thumbnail",
-          "color": "#ef4444",
+          "color": "#1c1c1c",
           "volume": 90,
           "action": {
             "type": "sound",
-            "sound": "boom.wav"
+            "sound": "boom.wav",
+            "volume": 0.9
           }
         },
         {
           "id": "sb_rimshot",
           "row": 1,
           "col": 0,
+          "category": "Soundboard",
           "label": "Ba-Dum-Tss",
-          "sublabel": "Add keybind",
+          "sublabel": "",
           "icon": "Drum",
-          "color": "#eab308",
+          "color": "#1c1c1c",
           "volume": 85,
           "action": {
             "type": "sound",
-            "sound": "rimshot.wav"
+            "sound": "rimshot.wav",
+            "volume": 0.85
           }
         },
         {
           "id": "sb_victory",
           "row": 1,
           "col": 1,
+          "category": "Soundboard",
           "label": "Victory Level Up",
-          "sublabel": "Add keybind",
+          "sublabel": "",
           "icon": "Trophy",
-          "color": "#10b981",
+          "color": "#1c1c1c",
           "volume": 80,
           "action": {
             "type": "sound",
-            "sound": "victory.wav"
+            "sound": "victory.wav",
+            "volume": 0.8
           }
         },
         {
           "id": "sb_airhorn",
           "row": 1,
           "col": 2,
+          "category": "Soundboard",
           "label": "Airhorn MLG",
-          "sublabel": "Add keybind",
+          "sublabel": "",
           "icon": "Megaphone",
-          "color": "#f97316",
+          "color": "#1c1c1c",
           "volume": 95,
           "action": {
             "type": "sound",
-            "sound": "airhorn.wav"
+            "sound": "airhorn.wav",
+            "volume": 0.95
           }
         },
         {
           "id": "sb_stop",
           "row": 1,
           "col": 3,
-          "label": "STOP ALL AUDIO",
-          "sublabel": "Mute All",
+          "category": "Soundboard",
+          "label": "Stop All Audio",
+          "sublabel": "",
           "icon": "Square",
-          "color": "#64748b",
+          "color": "#1c1c1c",
           "volume": 0,
           "action": {
             "type": "stop_sounds"
@@ -136,7 +151,7 @@
     {
       "id": "page_live",
       "name": "Stream",
-      "category": "Live Stream",
+      "category": "Stream",
       "gridCols": 4,
       "gridRows": 3,
       "buttons": [
@@ -144,11 +159,12 @@
           "id": "b_gameplay",
           "row": 0,
           "col": 0,
+          "category": "Stream",
           "label": "Gameplay",
           "sublabel": "OBS Scene",
           "image": "/uploads/obs.svg",
           "imageMode": "thumbnail",
-          "color": "#3b82f6",
+          "color": "#1c1c1c",
           "action": {
             "type": "obs_scene",
             "scene": "Gameplay"
@@ -158,11 +174,12 @@
           "id": "b_chat",
           "row": 0,
           "col": 1,
+          "category": "Stream",
           "label": "Just Chatting",
           "sublabel": "OBS Scene",
           "image": "/uploads/synthwave.jpg",
           "imageMode": "full",
-          "color": "#8b5cf6",
+          "color": "#1c1c1c",
           "action": {
             "type": "obs_scene",
             "scene": "Just Chatting"
@@ -172,10 +189,11 @@
           "id": "b_brb",
           "row": 0,
           "col": 2,
+          "category": "Stream",
           "label": "BRB Screen",
           "sublabel": "OBS Scene",
           "icon": "Coffee",
-          "color": "#ec4899",
+          "color": "#1c1c1c",
           "action": {
             "type": "obs_scene",
             "scene": "BRB"
@@ -185,10 +203,11 @@
           "id": "b_rec",
           "row": 0,
           "col": 3,
+          "category": "Stream",
           "label": "Record Toggle",
           "sublabel": "OBS Rec",
           "icon": "CircleDot",
-          "color": "#dc2626",
+          "color": "#1c1c1c",
           "action": {
             "type": "obs_record"
           }
@@ -197,10 +216,11 @@
           "id": "b_mic",
           "row": 1,
           "col": 0,
+          "category": "Stream",
           "label": "Mic Mute",
           "sublabel": "OBS Mic",
           "icon": "Mic",
-          "color": "#ef4444",
+          "color": "#1c1c1c",
           "action": {
             "type": "obs_mute",
             "input": "Mic/Aux"
@@ -210,10 +230,11 @@
           "id": "b_desk",
           "row": 1,
           "col": 1,
+          "category": "Stream",
           "label": "Desktop Audio",
           "sublabel": "OBS Desktop",
           "icon": "Volume2",
-          "color": "#f59e0b",
+          "color": "#1c1c1c",
           "action": {
             "type": "obs_mute",
             "input": "Desktop Audio"
@@ -223,11 +244,12 @@
           "id": "b_disc_mute",
           "row": 1,
           "col": 2,
+          "category": "Stream",
           "label": "Discord Mute",
           "sublabel": "Ctrl+Shift+M",
           "image": "/uploads/discord.svg",
           "imageMode": "thumbnail",
-          "color": "#6366f1",
+          "color": "#1c1c1c",
           "action": {
             "type": "hotkey",
             "keys": "Ctrl+Shift+M"
@@ -237,11 +259,12 @@
           "id": "b_disc_deaf",
           "row": 1,
           "col": 3,
+          "category": "Stream",
           "label": "Discord Deafen",
           "sublabel": "Ctrl+Shift+D",
           "image": "/uploads/discord.svg",
           "imageMode": "thumbnail",
-          "color": "#a855f7",
+          "color": "#1c1c1c",
           "action": {
             "type": "hotkey",
             "keys": "Ctrl+Shift+D"
@@ -251,11 +274,12 @@
           "id": "b_tt_s1",
           "row": 2,
           "col": 0,
+          "category": "Stream",
           "label": "TikTok Scene 1",
           "sublabel": "Ctrl+F1",
           "image": "/uploads/tiktok.svg",
           "imageMode": "thumbnail",
-          "color": "#06b6d4",
+          "color": "#1c1c1c",
           "action": {
             "type": "hotkey",
             "keys": "Ctrl+F1"
@@ -265,11 +289,12 @@
           "id": "b_tt_s2",
           "row": 2,
           "col": 1,
+          "category": "Stream",
           "label": "TikTok Scene 2",
           "sublabel": "Ctrl+F2",
           "image": "/uploads/tiktok.svg",
           "imageMode": "thumbnail",
-          "color": "#0ea5e9",
+          "color": "#1c1c1c",
           "action": {
             "type": "hotkey",
             "keys": "Ctrl+F2"
@@ -279,10 +304,11 @@
           "id": "b_tt_mute",
           "row": 2,
           "col": 2,
+          "category": "Stream",
           "label": "TikTok Mic",
           "sublabel": "Ctrl+F3",
           "icon": "MicOff",
-          "color": "#f43f5e",
+          "color": "#1c1c1c",
           "action": {
             "type": "hotkey",
             "keys": "Ctrl+F3"
@@ -292,10 +318,11 @@
           "id": "b_screen",
           "row": 2,
           "col": 3,
+          "category": "Stream",
           "label": "Screenshot",
           "sublabel": "Win+Shift+S",
           "icon": "Camera",
-          "color": "#10b981",
+          "color": "#1c1c1c",
           "action": {
             "type": "hotkey",
             "keys": "Win+Shift+S"
@@ -306,7 +333,7 @@
     {
       "id": "page_media",
       "name": "Apps",
-      "category": "Productivity",
+      "category": "Apps",
       "gridCols": 4,
       "gridRows": 3,
       "buttons": [
@@ -314,10 +341,11 @@
           "id": "m_play",
           "row": 0,
           "col": 0,
+          "category": "Apps",
           "label": "Play / Pause",
           "sublabel": "Media",
           "icon": "Play",
-          "color": "#22c55e",
+          "color": "#1c1c1c",
           "action": {
             "type": "hotkey",
             "keys": "MEDIA_PLAY_PAUSE"
@@ -327,10 +355,11 @@
           "id": "m_prev",
           "row": 0,
           "col": 1,
+          "category": "Apps",
           "label": "Prev Track",
           "sublabel": "Media",
           "icon": "SkipBack",
-          "color": "#3b82f6",
+          "color": "#1c1c1c",
           "action": {
             "type": "hotkey",
             "keys": "MEDIA_PREV"
@@ -340,10 +369,11 @@
           "id": "m_next",
           "row": 0,
           "col": 2,
+          "category": "Apps",
           "label": "Next Track",
           "sublabel": "Media",
           "icon": "SkipForward",
-          "color": "#3b82f6",
+          "color": "#1c1c1c",
           "action": {
             "type": "hotkey",
             "keys": "MEDIA_NEXT"
@@ -353,10 +383,11 @@
           "id": "m_mute",
           "row": 0,
           "col": 3,
+          "category": "Apps",
           "label": "Mute Audio",
           "sublabel": "Media",
           "icon": "VolumeX",
-          "color": "#ef4444",
+          "color": "#1c1c1c",
           "action": {
             "type": "hotkey",
             "keys": "VOLUME_MUTE"
@@ -366,10 +397,11 @@
           "id": "m_volup",
           "row": 1,
           "col": 0,
+          "category": "Apps",
           "label": "Volume +",
           "sublabel": "System",
           "icon": "Volume2",
-          "color": "#06b6d4",
+          "color": "#1c1c1c",
           "action": {
             "type": "hotkey",
             "keys": "VOLUME_UP"
@@ -379,10 +411,11 @@
           "id": "m_voldown",
           "row": 1,
           "col": 1,
+          "category": "Apps",
           "label": "Volume -",
           "sublabel": "System",
           "icon": "Volume1",
-          "color": "#06b6d4",
+          "color": "#1c1c1c",
           "action": {
             "type": "hotkey",
             "keys": "VOLUME_DOWN"
@@ -392,10 +425,11 @@
           "id": "m_taskmgr",
           "row": 1,
           "col": 2,
+          "category": "Apps",
           "label": "Task Manager",
           "sublabel": "Ctrl+Shift+Esc",
           "icon": "Activity",
-          "color": "#8b5cf6",
+          "color": "#1c1c1c",
           "action": {
             "type": "hotkey",
             "keys": "Ctrl+Shift+Esc"
@@ -405,10 +439,11 @@
           "id": "m_lock",
           "row": 1,
           "col": 3,
+          "category": "Apps",
           "label": "Lock PC",
           "sublabel": "Win+L",
           "icon": "Lock",
-          "color": "#dc2626",
+          "color": "#1c1c1c",
           "action": {
             "type": "hotkey",
             "keys": "Win+L"
@@ -418,11 +453,12 @@
           "id": "app_obs",
           "row": 2,
           "col": 0,
+          "category": "Apps",
           "label": "Open OBS",
           "sublabel": "App",
           "image": "/uploads/obs.svg",
           "imageMode": "thumbnail",
-          "color": "#6366f1",
+          "color": "#1c1c1c",
           "action": {
             "type": "app",
             "target": "obs64.exe"
@@ -432,24 +468,27 @@
           "id": "app_discord",
           "row": 2,
           "col": 1,
+          "category": "Apps",
           "label": "Open Discord",
           "sublabel": "App",
           "image": "/uploads/discord.svg",
           "imageMode": "thumbnail",
-          "color": "#8b5cf6",
+          "color": "#1c1c1c",
           "action": {
             "type": "app",
-            "target": "discord"
-          }
+            "target": "discord:"
+          },
+          "pageName": "Apps"
         },
         {
           "id": "app_browser",
           "row": 2,
           "col": 2,
+          "category": "Apps",
           "label": "Browser",
           "sublabel": "Web",
           "icon": "Globe",
-          "color": "#f59e0b",
+          "color": "#1c1c1c",
           "action": {
             "type": "app",
             "target": "https://google.com"
@@ -459,14 +498,31 @@
           "id": "app_spotify",
           "row": 2,
           "col": 3,
+          "category": "Apps",
           "label": "Spotify",
           "sublabel": "App",
           "icon": "Music",
-          "color": "#10b981",
+          "color": "#1c1c1c",
           "action": {
             "type": "app",
             "target": "spotify"
           }
+        },
+        {
+          "id": "card_1792923745220",
+          "label": "Steam",
+          "sublabel": "App",
+          "image": "",
+          "imageMode": "full",
+          "icon": "Layers",
+          "color": "#333333",
+          "volume": 80,
+          "action": {
+            "type": "app",
+            "target": "steam://"
+          },
+          "pageName": "Apps",
+          "category": "Apps"
         }
       ]
     }

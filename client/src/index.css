@@ -400,6 +400,125 @@ input:checked + .slider-switch:before {
   border-color: #383838;
 }
 
+/* Navbar Search Capsule (Apple/Elgato Stealth Style) */
+.nav-search-capsule {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background: rgba(255, 255, 255, 0.035);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 20px;
+  padding: 6px 14px;
+  width: 320px;
+  transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+  position: relative;
+}
+
+.nav-search-capsule:focus-within {
+  width: 370px;
+  background: rgba(255, 255, 255, 0.06);
+  border-color: rgba(255, 255, 255, 0.24);
+  box-shadow: 0 0 16px rgba(255, 255, 255, 0.05), 0 4px 12px rgba(0, 0, 0, 0.4);
+}
+
+.nav-search-input {
+  background: transparent;
+  border: none;
+  color: #f5f5f5;
+  outline: none;
+  font-size: 0.84rem;
+  font-family: inherit;
+  width: 100%;
+}
+
+.nav-search-input::placeholder {
+  color: #666666;
+  font-weight: 500;
+}
+
+.search-shortcut-badge {
+  font-size: 0.65rem;
+  font-weight: 700;
+  font-family: var(--font-mono);
+  color: #666666;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  padding: 2px 6px;
+  border-radius: 5px;
+  white-space: nowrap;
+  pointer-events: none;
+}
+
+/* Navbar Action Buttons (Luxury Stealth & High-Contrast) */
+.nav-btn-connect {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 15px;
+  border-radius: 11px;
+  background: linear-gradient(180deg, #181818 0%, #101010 100%);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  color: #e5e5e5;
+  font-size: 0.82rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.4);
+}
+
+.nav-btn-connect:hover {
+  background: linear-gradient(180deg, #222222 0%, #161616 100%);
+  border-color: rgba(255, 255, 255, 0.22);
+  color: #ffffff;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.6);
+}
+
+.nav-btn-connect:active {
+  transform: translateY(0);
+}
+
+.pulse-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: #22c55e;
+  box-shadow: 0 0 8px #22c55e;
+  display: inline-block;
+  animation: pulse-glow 2s infinite ease-in-out;
+}
+
+@keyframes pulse-glow {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.4; transform: scale(0.85); }
+}
+
+.nav-btn-controller {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 16px;
+  border-radius: 11px;
+  background: linear-gradient(135deg, #f5f5f5 0%, #d8d8d8 100%);
+  border: 1px solid rgba(255, 255, 255, 0.8);
+  color: #080808;
+  font-size: 0.82rem;
+  font-weight: 800;
+  cursor: pointer;
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+  box-shadow: 0 2px 10px rgba(255, 255, 255, 0.12), 0 4px 12px rgba(0, 0, 0, 0.4);
+}
+
+.nav-btn-controller:hover {
+  background: #ffffff;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 18px rgba(255, 255, 255, 0.28), 0 6px 16px rgba(0, 0, 0, 0.5);
+}
+
+.nav-btn-controller:active {
+  transform: translateY(0);
+}
+
 /* Modal and inputs */
 .modal-overlay {
   position: fixed;

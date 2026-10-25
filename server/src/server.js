@@ -53,6 +53,7 @@ function getLocalIpAddress() {
 
 const localIp = getLocalIpAddress();
 const localUrl = `http://${localIp}:${PORT}`;
+const mobileDeckUrl = `http://${localIp}:${PORT}/?mode=deck`;
 let currentConfig = loadConfig();
 
 // Broadcast message to all connected WebSocket clients
@@ -80,7 +81,7 @@ if (currentConfig.obsSettings?.autoConnect) {
 // REST Endpoints
 app.get('/api/info', async (req, res) => {
   try {
-    const qrDataUrl = await QRCode.toDataURL(localUrl);
+    const qrDataUrl = await QRCode.toDataURL(mobileDeckUrl);
     res.json({
       name: 'MyStreamBoard',
       version: '1.0.0',
@@ -88,7 +89,8 @@ app.get('/api/info', async (req, res) => {
       license: 'PROPRIETARY',
       ip: localIp,
       port: PORT,
-      url: localUrl,
+      url: mobileDeckUrl,
+      deckUrl: mobileDeckUrl,
       qrDataUrl,
       obsConnected: obsManager.isConnected
     });
@@ -277,15 +279,14 @@ server.listen(PORT, '0.0.0.0', () => {
   console.log('  Copyright (c) 2026 Dzikri Arya Sahputra. All rights reserved.   ');
   console.log('  Commercial Proprietary Software                                ');
   console.log('=================================================================');
-  console.log(`\n  Desktop Local URL : http://localhost:${PORT}`);
-  console.log(`  Mobile Deck URL  : ${localUrl}`);
-  console.log('\n  SCAN DARI HP KAMU UNTUK LANGSUNG TERHUBUNG:');
-
+  console.log(`\n  Desktop Studio URL: http://localhost:${PORT}/?mode=studio`);
+  console.log(`  Mobile Deck URL   : ${mobileDeckUrl}`);
+  console.log('\n  SCAN DARI HP KAMU UNTUK LANGSUNG MEMBUKA CONTROLLER:');
 
   try {
-    qrcodeTerminal.generate(localUrl, { small: true });
+    qrcodeTerminal.generate(mobileDeckUrl, { small: true });
   } catch (e) {
-    console.log(`  Buka URL di browser HP: ${localUrl}`);
+    console.log(`  Buka URL di browser HP: ${mobileDeckUrl}`);
   }
 
   console.log('\n  [Tekan Ctrl+C untuk berhenti]');

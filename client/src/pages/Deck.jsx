@@ -173,8 +173,8 @@ export default function Deck({ onNavigate }) {
       <header className="glass-nav" style={{ padding: '12px 18px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', zIndex: 10 }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-            <div style={{ width: '32px', height: '32px', borderRadius: '8px', background: '#1c1c1c', border: '1px solid #2e2e2e', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-              <SlidersHorizontal size={16} color="#f5f5f5" />
+            <div style={{ width: '34px', height: '34px', borderRadius: '8px', background: '#141414', border: '1px solid #282828', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '2px' }}>
+              <img src="/app-icon.png" alt="MyStreamBoard" style={{ width: '100%', height: '100%', objectFit: 'contain' }} />
             </div>
             <div>
               <div style={{ fontSize: '0.95rem', fontWeight: '800', letterSpacing: '-0.02em', color: '#f5f5f5' }}>
@@ -228,14 +228,6 @@ export default function Deck({ onNavigate }) {
             style={{ width: '36px', height: '36px', borderRadius: '10px', background: '#141414', border: '1px solid #222', color: '#a3a3a3', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' }}
           >
             <Maximize2 size={16} />
-          </button>
-
-          <button 
-            onClick={() => onNavigate('studio')}
-            title="Open PC Studio Editor"
-            style={{ width: '36px', height: '36px', borderRadius: '10px', background: '#141414', border: '1px solid #222', color: '#a3a3a3', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' }}
-          >
-            <SlidersHorizontal size={16} />
           </button>
         </div>
       </header>

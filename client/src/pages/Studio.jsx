@@ -23,7 +23,11 @@ import {
   Layers,
   Tv,
   Music,
-  FolderOpen
+  FolderOpen,
+  BookOpen,
+  Info,
+  HelpCircle,
+  ExternalLink
 } from 'lucide-react';
 
 const FILTER_CATEGORIES = ['All', 'Soundboard', 'Stream', 'Apps'];
@@ -35,6 +39,16 @@ export default function Studio({ onNavigate }) {
   const [editingBtn, setEditingBtn] = useState(null); // When not null, Right Sidebar is open!
   const [serverInfo, setServerInfo] = useState(null);
   const [showQrModal, setShowQrModal] = useState(false);
+  const [showGuideModal, setShowGuideModal] = useState(false);
+  const [guideTab, setGuideTab] = useState('apps'); // 'apps' | 'stream' | 'hotkeys'
+  const [saveSidebarSuccess, setSaveSidebarSuccess] = useState(false);
+  const [availableSounds, setAvailableSounds] = useState([
+    { name: 'airhorn.wav', displayName: 'Airhorn' },
+    { name: 'rimshot.wav', displayName: 'Ba-Dum-Tss (Rimshot)' },
+    { name: 'victory.wav', displayName: 'Victory Fanfare' },
+    { name: 'boom.wav', displayName: 'Vine Boom' },
+    { name: 'applause.wav', displayName: 'Applause' }
+  ]);
 
   // Add Card Flow States
   const [showAddChoiceModal, setShowAddChoiceModal] = useState(false);
@@ -53,6 +67,7 @@ export default function Studio({ onNavigate }) {
   });
 
   const sidebarImgInputRef = useRef(null);
+  const sidebarSoundInputRef = useRef(null);
   const modalImgInputRef = useRef(null);
   const modalSoundInputRef = useRef(null);
 
@@ -71,7 +86,17 @@ export default function Studio({ onNavigate }) {
       .then(r => r.json())
       .then(cfg => setConfig(cfg))
       .catch(() => {});
+
+    fetch(`${baseUrl}/api/sounds`)
+      .then(r => r.json())
+      .then(sounds => {
+        if (Array.isArray(sounds) && sounds.length > 0) {
+          setAvailableSounds(sounds);
+        }
+      })
+      .catch(() => {});
   }, [baseUrl]);
+
 
   // Save config
   const handleSaveConfig = async (newCfg = config) => {
@@ -169,13 +194,15 @@ export default function Studio({ onNavigate }) {
     setShowAddChoiceModal(false);
     // Reset data
     setNewCardData({
-      label: type === 'Soundboard' ? 'Sound FX' : type === 'Stream' ? 'Stream Scene' : 'App Launcher',
-      sublabel: type === 'Soundboard' ? '' : type === 'Stream' ? 'Ctrl+F1' : 'Shortcut',
+      label: type === 'Soundboard' ? 'Sound FX' : type === 'Stream' ? 'Stream Scene' : 'Buka Steam',
+      sublabel: type === 'Soundboard' ? '' : type === 'Stream' ? 'OBS Scene' : 'steam://',
       image: '',
       imageMode: 'full',
-      actionType: type === 'Soundboard' ? 'sound' : type === 'Stream' ? 'obs_scene' : 'hotkey',
+      actionType: type === 'Soundboard' ? 'sound' : type === 'Stream' ? 'obs_scene' : 'app',
+      appSubtype: 'app',
+      appTarget: 'steam://',
       sound: 'airhorn.wav',
-      hotkeys: 'Ctrl+F1',
+      hotkeys: 'Ctrl+Shift+M',
       obsType: 'scene',
       obsTarget: 'Gameplay',
       volume: 80
@@ -192,13 +219,17 @@ export default function Studio({ onNavigate }) {
       else if (newCardData.obsType === 'tiktok') action = { type: 'hotkey', keys: newCardData.hotkeys };
       else action = { type: 'obs_record' };
     } else {
-      action = { type: 'hotkey', keys: newCardData.hotkeys };
+      if (newCardData.appSubtype === 'app') {
+        action = { type: 'app', target: newCardData.appTarget || 'steam://' };
+      } else {
+        action = { type: 'hotkey', keys: newCardData.hotkeys || 'Ctrl+Shift+M' };
+      }
     }
 
     const newBtn = {
       id: `card_${Date.now()}`,
       label: newCardData.label || 'Card Baru',
-      sublabel: creationType === 'Soundboard' ? '' : (newCardData.sublabel || ''),
+      sublabel: creationType === 'Soundboard' ? '' : (newCardData.sublabel || (newCardData.appSubtype === 'app' ? newCardData.appTarget : newCardData.hotkeys) || ''),
       image: newCardData.image || '',
       imageMode: newCardData.imageMode || 'full',
       icon: creationType === 'Soundboard' ? 'Volume2' : creationType === 'Stream' ? 'Radio' : 'Layers',
@@ -256,10 +287,9 @@ export default function Studio({ onNavigate }) {
 
       {/* Top Navbar */}
       <header className="glass-nav" style={{ padding: '14px 24px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', zIndex: 10 }}>
-        {/* Brand */}
         <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-          <div style={{ width: '36px', height: '36px', borderRadius: '10px', background: '#1c1c1c', border: '1px solid #2e2e2e', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-            <SlidersHorizontal size={18} color="#f5f5f5" />
+          <div style={{ width: '38px', height: '38px', borderRadius: '10px', background: '#141414', border: '1px solid #282828', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '3px' }}>
+            <img src="/app-icon.png" alt="MyStreamBoard" style={{ width: '100%', height: '100%', objectFit: 'contain' }} />
           </div>
           <div>
             <div style={{ fontSize: '1.1rem', fontWeight: '800', letterSpacing: '-0.02em', color: '#f5f5f5' }}>
@@ -271,35 +301,57 @@ export default function Studio({ onNavigate }) {
           </div>
         </div>
 
-        {/* Search Bar */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', background: '#121212', border: '1px solid #222222', borderRadius: '24px', padding: '6px 16px', width: '320px' }}>
-          <Search size={15} color="#737373" />
+        {/* Upgraded Premium Search Capsule */}
+        <div className="nav-search-capsule">
+          <Search size={15} color="#8a8a8a" />
           <input 
             type="text" 
-            placeholder="Search sounds, hotkeys, stream..." 
+            placeholder="Search sounds, hotkeys, stream actions..." 
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            style={{ background: 'transparent', border: 'none', color: '#fff', outline: 'none', fontSize: '0.85rem', width: '100%' }}
+            className="nav-search-input"
           />
+          {searchQuery ? (
+            <button 
+              onClick={() => setSearchQuery('')}
+              style={{ background: 'none', border: 'none', color: '#888', cursor: 'pointer', padding: '2px', display: 'flex', alignItems: 'center' }}
+              title="Clear search"
+            >
+              <X size={13} />
+            </button>
+          ) : (
+            <span className="search-shortcut-badge">/</span>
+          )}
         </div>
 
-        {/* Right Nav Action Buttons */}
+        {/* Right Nav Action Buttons (Upgraded Luxury Styles) */}
         <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
           <button 
-            className="btn-secondary" 
-            onClick={() => setShowQrModal(true)}
-            style={{ padding: '7px 14px', fontSize: '0.82rem' }}
+            className="nav-btn-connect" 
+            onClick={() => setShowGuideModal(true)}
+            title="Buka petunjuk lengkap shortcut & integrasi"
+            style={{ background: '#141414', borderColor: '#2b2b2b' }}
           >
-            <QrCode size={15} color="#a3a3a3" />
+            <BookOpen size={15} color="#a3a3a3" />
+            <span>Panduan</span>
+          </button>
+
+          <button 
+            className="nav-btn-connect" 
+            onClick={() => setShowQrModal(true)}
+            title="Scan QR Code untuk membuka deck controller di smartphone"
+          >
+            <span className="pulse-dot" title="Server Online"></span>
+            <QrCode size={15} />
             <span>Sambungkan HP</span>
           </button>
 
           <button 
-            className="btn-secondary" 
+            className="nav-btn-controller" 
             onClick={() => onNavigate('deck')}
-            style={{ padding: '7px 14px', fontSize: '0.82rem' }}
+            title="Buka deck controller mode smartphone"
           >
-            <Smartphone size={15} color="#a3a3a3" />
+            <Smartphone size={15} />
             <span>Buka Deck Controller</span>
           </button>
         </div>
@@ -396,127 +448,170 @@ export default function Studio({ onNavigate }) {
         </div>
 
         {/* Right Inspector Sidebar - ONLY SHOWN WHEN EDITING A CARD */}
-        {editingBtn && (
-          <aside style={{ width: '310px', background: '#0d0d0d', borderLeft: '1px solid #1f1f1f', padding: '22px', display: 'flex', flexDirection: 'column', gap: '18px', overflowY: 'auto', position: 'relative' }}>
-            
-            {/* Top Close Button */}
-            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', borderBottom: '1px solid #1c1c1c', paddingBottom: '12px' }}>
-              <div style={{ fontSize: '0.85rem', fontWeight: '800', color: '#f5f5f5', display: 'flex', alignItems: 'center', gap: '6px' }}>
-                <Edit2 size={14} color="#a3a3a3" />
-                <span>Edit Card</span>
-              </div>
-              <button 
-                onClick={() => setEditingBtn(null)}
-                style={{ background: 'none', border: 'none', color: '#737373', cursor: 'pointer', padding: '4px' }}
-              >
-                <X size={18} />
-              </button>
-            </div>
+        {editingBtn && (() => {
+          const currentCategory = editingBtn.category || (
+            editingBtn.action?.type === 'sound' || editingBtn.action?.type === 'stop_sounds' ? 'Soundboard' :
+            editingBtn.action?.type?.startsWith('obs') || editingBtn.sublabel?.toLowerCase().includes('obs') || editingBtn.label?.toLowerCase().includes('tiktok') ? 'Stream' :
+            'Apps'
+          );
 
-            {/* Big Avatar / Full Card Preview */}
-            <div style={{ textAlign: 'center' }}>
-              <div style={{ width: '100px', height: '100px', margin: '0 auto 12px', borderRadius: '16px', overflow: 'hidden', background: '#161616', border: '1px solid #333333', position: 'relative' }}>
-                {editingBtn.image ? (
-                  <img src={editingBtn.image} alt={editingBtn.label} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-                ) : (
-                  <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                    <DynamicIcon name={editingBtn.icon || 'Sparkles'} size={42} color="#f5f5f5" />
+          const isSoundboard = currentCategory === 'Soundboard';
+          const isStream = currentCategory === 'Stream';
+          const isApps = currentCategory === 'Apps';
+
+          const handleSaveEditingBtn = () => {
+            const cleanBtn = {
+              ...editingBtn,
+              category: currentCategory,
+              sublabel: isSoundboard ? '' : (editingBtn.sublabel || '')
+            };
+            updateButtonInConfig(cleanBtn);
+            setSaveSidebarSuccess(true);
+            setTimeout(() => {
+              setSaveSidebarSuccess(false);
+              setEditingBtn(null);
+            }, 300);
+          };
+
+          const handleDeleteEditingBtn = () => {
+            if (!confirm(`Hapus card "${editingBtn.label}"?`)) return;
+            const updatedPages = config.pages.map(p => ({
+              ...p,
+              buttons: p.buttons.filter(b => b.id !== editingBtn.id)
+            }));
+            const newCfg = { ...config, pages: updatedPages };
+            setConfig(newCfg);
+            setEditingBtn(null);
+            handleSaveConfig(newCfg);
+          };
+
+          return (
+            <aside style={{ width: '330px', background: '#0d0d0d', borderLeft: '1px solid #1f1f1f', padding: '22px', display: 'flex', flexDirection: 'column', gap: '16px', overflowY: 'auto', position: 'relative' }}>
+              
+              {/* Top Header: Title, Prominent Save Button, Close Button */}
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', borderBottom: '1px solid #1f1f1f', paddingBottom: '12px' }}>
+                <div style={{ fontSize: '0.88rem', fontWeight: '800', color: '#f5f5f5', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                  {isSoundboard && <Volume2 size={16} color="#a3a3a3" />}
+                  {isStream && <Radio size={16} color="#a3a3a3" />}
+                  {isApps && <Layers size={16} color="#a3a3a3" />}
+                  <span>{isSoundboard ? 'Edit Soundboard' : isStream ? 'Edit Stream' : 'Edit Apps'}</span>
+                </div>
+                <button 
+                  onClick={() => setEditingBtn(null)}
+                  style={{ background: 'none', border: 'none', color: '#737373', cursor: 'pointer', padding: '4px', display: 'flex', alignItems: 'center' }}
+                  title="Tutup Panel Edit"
+                >
+                  <X size={18} />
+                </button>
+              </div>
+
+              {/* Tipe Card Switcher (Soundboard / Stream / Apps) */}
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '6px', background: '#121212', padding: '4px', borderRadius: '10px', border: '1px solid #222' }}>
+                {['Soundboard', 'Stream', 'Apps'].map(cat => (
+                  <button
+                    key={cat}
+                    onClick={() => {
+                      let action = editingBtn.action;
+                      let sublabel = editingBtn.sublabel;
+                      if (cat === 'Soundboard') {
+                        action = { type: 'sound', sound: editingBtn.action?.sound || 'airhorn.wav', volume: 0.8 };
+                        sublabel = '';
+                      } else if (cat === 'Stream') {
+                        action = { type: 'obs_scene', scene: 'Gameplay' };
+                        sublabel = 'OBS Scene';
+                      } else {
+                        action = { type: 'hotkey', keys: 'Ctrl+Shift+M' };
+                        sublabel = 'Shortcut';
+                      }
+                      setEditingBtn({
+                        ...editingBtn,
+                        category: cat,
+                        sublabel,
+                        action
+                      });
+                    }}
+                    style={{
+                      padding: '6px 0',
+                      fontSize: '0.74rem',
+                      fontWeight: '700',
+                      borderRadius: '7px',
+                      border: 'none',
+                      background: currentCategory === cat ? '#2a2a2a' : 'transparent',
+                      color: currentCategory === cat ? '#fff' : '#737373',
+                      cursor: 'pointer',
+                      transition: 'all 0.2s',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      gap: '4px'
+                    }}
+                  >
+                    {cat === 'Soundboard' && <Volume2 size={12} />}
+                    {cat === 'Stream' && <Radio size={12} />}
+                    {cat === 'Apps' && <Layers size={12} />}
+                    <span>{cat}</span>
+                  </button>
+                ))}
+              </div>
+
+              {/* Big Avatar / Full Card Preview & Title */}
+              <div style={{ textAlign: 'center' }}>
+                <div style={{ width: '92px', height: '92px', margin: '0 auto 12px', borderRadius: '16px', overflow: 'hidden', background: '#161616', border: '1px solid #333333', position: 'relative' }}>
+                  {editingBtn.image ? (
+                    <img src={editingBtn.image} alt={editingBtn.label} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                  ) : (
+                    <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                      <DynamicIcon name={editingBtn.icon || (isSoundboard ? 'Volume2' : isStream ? 'Radio' : 'Layers')} size={36} color="#f5f5f5" />
+                    </div>
+                  )}
+                </div>
+
+                <div style={{ textAlign: 'left', marginBottom: '8px' }}>
+                  <label style={{ display: 'block', fontSize: '0.72rem', color: '#737373', marginBottom: '4px', fontWeight: '700' }}>Nama Card</label>
+                  <input 
+                    type="text" 
+                    value={editingBtn.label || ''} 
+                    onChange={(e) => setEditingBtn({ ...editingBtn, label: e.target.value })}
+                    className="input-field"
+                    style={{ fontWeight: '700', fontSize: '0.88rem' }}
+                    placeholder="Nama Card"
+                  />
+                </div>
+
+                {/* Sublabel / Shortcut ONLY for Stream & Apps */}
+                {!isSoundboard && (
+                  <div style={{ textAlign: 'left' }}>
+                    <label style={{ display: 'block', fontSize: '0.72rem', color: '#737373', marginBottom: '4px', fontWeight: '700' }}>Info Shortcut / Sublabel</label>
+                    <input 
+                      type="text" 
+                      value={editingBtn.sublabel || ''} 
+                      onChange={(e) => setEditingBtn({ ...editingBtn, sublabel: e.target.value })}
+                      className="input-field"
+                      style={{ fontSize: '0.8rem', color: '#a3a3a3' }}
+                      placeholder="misal: Ctrl+F1 atau OBS Scene"
+                    />
                   </div>
                 )}
               </div>
 
-              <input 
-                type="text" 
-                value={editingBtn.label || ''} 
-                onChange={(e) => {
-                  const updated = { ...editingBtn, label: e.target.value };
-                  setEditingBtn(updated);
-                  updateButtonInConfig(updated);
-                }}
-                className="input-field"
-                style={{ textAlign: 'center', fontWeight: '800', fontSize: '0.9rem', marginBottom: '6px' }}
-                placeholder="Nama Card"
-              />
-
-              {/* Only show sublabel / keybind if NOT soundboard */}
-              {editingBtn.action?.type !== 'sound' && (
-                <input 
-                  type="text" 
-                  value={editingBtn.sublabel || ''} 
-                  onChange={(e) => {
-                    const updated = { ...editingBtn, sublabel: e.target.value };
-                    setEditingBtn(updated);
-                    updateButtonInConfig(updated);
-                  }}
-                  className="input-field"
-                  style={{ textAlign: 'center', fontSize: '0.75rem', color: '#a3a3a3' }}
-                  placeholder="Shortcut (misal: Ctrl+F1)"
-                />
-              )}
-            </div>
-
-            {/* Volume Slider (if sound) */}
-            {editingBtn.action?.type === 'sound' && (
-              <div className="glass-panel" style={{ padding: '14px' }}>
-                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '8px' }}>
-                  <span style={{ fontSize: '0.75rem', fontWeight: '700', color: '#a3a3a3' }}>Volume Suara</span>
-                  <span style={{ fontSize: '0.75rem', fontWeight: '800', color: '#fff', fontFamily: 'var(--font-mono)' }}>{editingBtn.volume || 80}</span>
+              {/* Image & Appearance Settings (All Cards) */}
+              <div className="glass-panel" style={{ padding: '12px', display: 'flex', flexDirection: 'column', gap: '10px' }}>
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                  <span style={{ fontSize: '0.76rem', fontWeight: '700', color: '#f5f5f5' }}>Full 1 Card Image</span>
+                  <label className="switch">
+                    <input 
+                      type="checkbox" 
+                      checked={editingBtn.imageMode === 'full'} 
+                      onChange={(e) => setEditingBtn({ ...editingBtn, imageMode: e.target.checked ? 'full' : 'thumbnail' })}
+                    />
+                    <span className="slider-switch"></span>
+                  </label>
                 </div>
-                <input 
-                  type="range" 
-                  min="0" 
-                  max="100" 
-                  value={editingBtn.volume || 80} 
-                  onChange={(e) => {
-                    const v = parseInt(e.target.value);
-                    const updated = { ...editingBtn, volume: v, action: { ...editingBtn.action, volume: v / 100 } };
-                    setEditingBtn(updated);
-                    updateButtonInConfig(updated);
-                  }}
-                  className="custom-slider" 
-                />
-              </div>
-            )}
 
-            {/* Play Operations */}
-            <div className="glass-panel" style={{ padding: '14px' }}>
-              <div style={{ fontSize: '0.75rem', fontWeight: '700', color: '#a3a3a3', marginBottom: '10px' }}>Tes Operasi</div>
-              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-around' }}>
-                <button className="op-btn" onClick={() => handleTrigger(editingBtn)} title="Play">
-                  <Play size={15} fill="#fff" />
-                </button>
-                <button className="op-btn" onClick={handleStopAll} title="Stop">
-                  <Square size={15} fill="#fff" />
-                </button>
-                <button className="op-btn" onClick={() => handleTrigger(editingBtn)} title="Replay">
-                  <RotateCcw size={15} />
-                </button>
-              </div>
-            </div>
-
-            {/* Card Layout & Image Controls */}
-            <div className="glass-panel" style={{ padding: '14px', display: 'flex', flexDirection: 'column', gap: '12px' }}>
-              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                <span style={{ fontSize: '0.78rem', fontWeight: '700', color: '#f5f5f5' }}>Full 1 Card Image</span>
-                <label className="switch">
-                  <input 
-                    type="checkbox" 
-                    checked={editingBtn.imageMode === 'full'} 
-                    onChange={(e) => {
-                      const updated = { ...editingBtn, imageMode: e.target.checked ? 'full' : 'thumbnail' };
-                      setEditingBtn(updated);
-                      updateButtonInConfig(updated);
-                    }}
-                  />
-                  <span className="slider-switch"></span>
-                </label>
-              </div>
-
-              <div>
                 <button 
                   className="btn-secondary" 
                   onClick={() => sidebarImgInputRef.current?.click()}
-                  style={{ width: '100%', justifyContent: 'center', padding: '8px', fontSize: '0.78rem' }}
+                  style={{ width: '100%', justifyContent: 'center', padding: '7px', fontSize: '0.76rem' }}
                 >
                   <ImageIcon size={14} />
                   <span>Upload / Ganti Gambar PNG</span>
@@ -524,37 +619,421 @@ export default function Studio({ onNavigate }) {
                 <input 
                   type="file" 
                   ref={sidebarImgInputRef} 
-                  onChange={(e) => handleUploadImageFile(e.target.files?.[0], (url) => {
-                    const updated = { ...editingBtn, image: url, imageMode: 'full' };
-                    setEditingBtn(updated);
-                    updateButtonInConfig(updated);
-                  })}
+                  onChange={(e) => handleUploadImageFile(e.target.files?.[0], (url) => setEditingBtn({ ...editingBtn, image: url, imageMode: 'full' }))}
                   accept="image/*" 
                   style={{ display: 'none' }} 
                 />
               </div>
-            </div>
 
-            {/* Delete Button */}
-            <button 
-              onClick={() => {
-                if (!confirm(`Hapus card "${editingBtn.label}"?`)) return;
-                const updatedPages = config.pages.map(p => ({
-                  ...p,
-                  buttons: p.buttons.filter(b => b.id !== editingBtn.id)
-                }));
-                const newCfg = { ...config, pages: updatedPages };
-                setConfig(newCfg);
-                setEditingBtn(null);
-                handleSaveConfig(newCfg);
-              }}
-              style={{ background: 'none', border: 'none', color: '#ef4444', fontSize: '0.78rem', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px', cursor: 'pointer', marginTop: 'auto', padding: '8px' }}
-            >
-              <Trash2 size={14} /> Hapus Card Ini
-            </button>
-          </aside>
-        )}
+              {/* 1. KHUSUS MENU SOUNDBOARD */}
+              {isSoundboard && (
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                  {/* Ganti File Suara Section */}
+                  <div className="glass-panel" style={{ padding: '12px', display: 'flex', flexDirection: 'column', gap: '10px' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                      <Music size={14} color="#a3a3a3" />
+                      <span style={{ fontSize: '0.78rem', fontWeight: '800', color: '#f5f5f5' }}>Ganti File Suara (Audio)</span>
+                    </div>
+
+                    <div>
+                      <label style={{ display: 'block', fontSize: '0.7rem', color: '#737373', marginBottom: '4px', fontWeight: '600' }}>
+                        Pilih dari Koleksi Suara:
+                      </label>
+                      <select 
+                        className="input-field"
+                        value={editingBtn.action?.sound || ''}
+                        onChange={(e) => setEditingBtn({
+                          ...editingBtn,
+                          action: { ...editingBtn.action, type: 'sound', sound: e.target.value }
+                        })}
+                        style={{ fontSize: '0.82rem', padding: '7px 10px', width: '100%' }}
+                      >
+                        {availableSounds.map(s => (
+                          <option key={s.name} value={s.name}>{s.displayName || s.name}</option>
+                        ))}
+                      </select>
+                    </div>
+
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px', margin: '2px 0' }}>
+                      <div style={{ flex: 1, height: '1px', background: '#222' }}></div>
+                      <span style={{ fontSize: '0.65rem', color: '#555', textTransform: 'uppercase' }}>atau</span>
+                      <div style={{ flex: 1, height: '1px', background: '#222' }}></div>
+                    </div>
+
+                    <button 
+                      className="btn-secondary" 
+                      onClick={() => sidebarSoundInputRef.current?.click()}
+                      style={{ width: '100%', justifyContent: 'center', padding: '8px', fontSize: '0.76rem' }}
+                    >
+                      <Upload size={14} />
+                      <span>Upload File Suara Baru (.mp3 / .wav)</span>
+                    </button>
+                    <input 
+                      type="file" 
+                      ref={sidebarSoundInputRef} 
+                      onChange={(e) => handleUploadSoundFile(e.target.files?.[0], (filename) => {
+                        setAvailableSounds(prev => [{ name: filename, displayName: filename }, ...prev]);
+                        setEditingBtn({
+                          ...editingBtn,
+                          action: { ...editingBtn.action, type: 'sound', sound: filename }
+                        });
+                      })}
+                      accept="audio/*" 
+                      style={{ display: 'none' }} 
+                    />
+                  </div>
+
+                  {/* Volume Slider */}
+                  <div className="glass-panel" style={{ padding: '12px' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '8px' }}>
+                      <span style={{ fontSize: '0.74rem', fontWeight: '700', color: '#a3a3a3' }}>Volume Suara</span>
+                      <span style={{ fontSize: '0.78rem', fontWeight: '800', color: '#fff', fontFamily: 'var(--font-mono)' }}>{editingBtn.volume || 80}%</span>
+                    </div>
+                    <input 
+                      type="range" 
+                      min="0" 
+                      max="100" 
+                      value={editingBtn.volume || 80} 
+                      onChange={(e) => {
+                        const v = parseInt(e.target.value);
+                        setEditingBtn({
+                          ...editingBtn,
+                          volume: v,
+                          action: { ...editingBtn.action, volume: v / 100 }
+                        });
+                      }}
+                      className="custom-slider" 
+                    />
+                  </div>
+
+                  {/* Tes Audio Soundboard */}
+                  <div className="glass-panel" style={{ padding: '12px' }}>
+                    <div style={{ fontSize: '0.74rem', fontWeight: '700', color: '#a3a3a3', marginBottom: '8px' }}>Tes Suara</div>
+                    <div style={{ display: 'flex', gap: '8px' }}>
+                      <button 
+                        className="btn-secondary" 
+                        onClick={() => handleTrigger(editingBtn)} 
+                        style={{ flex: 1, justifyContent: 'center', padding: '7px', fontSize: '0.78rem' }}
+                      >
+                        <Play size={14} /> Play Suara
+                      </button>
+                      <button 
+                        className="btn-secondary" 
+                        onClick={handleStopAll} 
+                        style={{ flex: 1, justifyContent: 'center', padding: '7px', fontSize: '0.78rem' }}
+                      >
+                        <Square size={14} /> Stop
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* 2. KHUSUS MENU STREAM (OBS & TIKTOK) */}
+              {isStream && (
+                <div className="glass-panel" style={{ padding: '12px', display: 'flex', flexDirection: 'column', gap: '10px' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '2px' }}>
+                    <Radio size={14} color="#a3a3a3" />
+                    <span style={{ fontSize: '0.78rem', fontWeight: '800', color: '#f5f5f5' }}>Konfigurasi Live Streaming</span>
+                  </div>
+
+                  <label style={{ fontSize: '0.74rem', fontWeight: '700', color: '#a3a3a3' }}>Tipe Aksi Stream</label>
+                  <select 
+                    className="input-field"
+                    value={editingBtn.action?.type || 'obs_scene'}
+                    onChange={(e) => {
+                      const type = e.target.value;
+                      let action = { type };
+                      let sublabel = '';
+                      if (type === 'obs_scene') { action.scene = 'Gameplay'; sublabel = 'OBS Scene'; }
+                      else if (type === 'obs_mute') { action.input = 'Mic/Aux'; sublabel = 'OBS Mic'; }
+                      else if (type === 'obs_record') { sublabel = 'OBS Rec'; }
+                      else if (type === 'obs_stream') { sublabel = 'OBS Live'; }
+                      else if (type === 'hotkey') { action.keys = 'Ctrl+F1'; sublabel = 'Ctrl+F1'; }
+                      setEditingBtn({ ...editingBtn, sublabel, action });
+                    }}
+                    style={{ fontSize: '0.8rem', padding: '7px 10px' }}
+                  >
+                    <option value="obs_scene">OBS Studio: Ganti Scene</option>
+                    <option value="obs_mute">OBS Studio: Toggle Mute Audio</option>
+                    <option value="obs_record">OBS Studio: Toggle Record</option>
+                    <option value="obs_stream">OBS Studio: Toggle Stream</option>
+                    <option value="hotkey">TikTok Live Studio: Hotkey Trigger</option>
+                  </select>
+
+                  {editingBtn.action?.type === 'obs_scene' && (
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                      <label style={{ display: 'block', fontSize: '0.72rem', color: '#737373', marginBottom: '2px', fontWeight: '700' }}>Nama Scene OBS</label>
+                      <input 
+                        type="text" 
+                        className="input-field" 
+                        value={editingBtn.action.scene || ''} 
+                        onChange={(e) => setEditingBtn({
+                          ...editingBtn,
+                          action: { ...editingBtn.action, scene: e.target.value }
+                        })}
+                        placeholder="misal: Gameplay, Just Chatting, BRB"
+                      />
+                      <div style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.07)', borderRadius: '8px', padding: '8px 10px', fontSize: '0.68rem', color: '#888', lineHeight: '1.4' }}>
+                        <div style={{ fontWeight: '700', color: '#e5e5e5', marginBottom: '3px', display: 'flex', alignItems: 'center', gap: '5px' }}>
+                          <Info size={12} color="#3b82f6" /> Petunjuk OBS Scene:
+                        </div>
+                        Pastikan OBS Studio sudah terbuka dan WebSocket aktif (di menu <em>Tools &gt; WebSocket Server Settings</em>, port 4455). Nama scene harus sama persis huruf besar/kecilnya dengan di OBS.
+                      </div>
+                    </div>
+                  )}
+
+                  {editingBtn.action?.type === 'obs_mute' && (
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                      <label style={{ display: 'block', fontSize: '0.72rem', color: '#737373', marginBottom: '2px', fontWeight: '700' }}>Nama Audio Source di OBS</label>
+                      <input 
+                        type="text" 
+                        className="input-field" 
+                        value={editingBtn.action.input || ''} 
+                        onChange={(e) => setEditingBtn({
+                          ...editingBtn,
+                          action: { ...editingBtn.action, input: e.target.value }
+                        })}
+                        placeholder="misal: Mic/Aux atau Desktop Audio"
+                      />
+                      <div style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.07)', borderRadius: '8px', padding: '8px 10px', fontSize: '0.68rem', color: '#888', lineHeight: '1.4' }}>
+                        <div style={{ fontWeight: '700', color: '#e5e5e5', marginBottom: '3px', display: 'flex', alignItems: 'center', gap: '5px' }}>
+                          <Info size={12} color="#3b82f6" /> Petunjuk Mute Audio:
+                        </div>
+                        Ketik nama sumber suara di Audio Mixer OBS (contoh: <code>Mic/Aux</code>, <code>Desktop Audio</code>, atau nama mikrofon USB Anda).
+                      </div>
+                    </div>
+                  )}
+
+                  {editingBtn.action?.type === 'hotkey' && (
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                      <label style={{ display: 'block', fontSize: '0.72rem', color: '#737373', marginBottom: '2px', fontWeight: '700' }}>Kombinasi Hotkey TikTok Studio</label>
+                      <input 
+                        type="text" 
+                        className="input-field" 
+                        value={editingBtn.action.keys || ''} 
+                        onChange={(e) => setEditingBtn({
+                          ...editingBtn,
+                          sublabel: e.target.value,
+                          action: { ...editingBtn.action, keys: e.target.value }
+                        })}
+                        placeholder="misal: Ctrl+F1, Ctrl+F2, Ctrl+F3"
+                      />
+                      <div style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.07)', borderRadius: '8px', padding: '8px 10px', fontSize: '0.68rem', color: '#888', lineHeight: '1.4' }}>
+                        <div style={{ fontWeight: '700', color: '#e5e5e5', marginBottom: '3px', display: 'flex', alignItems: 'center', gap: '5px' }}>
+                          <Info size={12} color="#3b82f6" /> Petunjuk TikTok Live Studio:
+                        </div>
+                        Buka TikTok Live Studio &gt; Setelan &gt; Hotkey. Atur tombol shortcut untuk ganti scene/kamera, lalu masukkan kombinasi yang sama di sini.
+                      </div>
+                    </div>
+                  )}
+
+                  <button 
+                    className="btn-secondary" 
+                    onClick={() => handleTrigger(editingBtn)} 
+                    style={{ width: '100%', justifyContent: 'center', padding: '7px', fontSize: '0.78rem', marginTop: '4px' }}
+                  >
+                    <Play size={13} /> Tes Eksekusi Stream
+                  </button>
+                </div>
+              )}
+
+              {/* 3. KHUSUS MENU APPS & SHORTCUTS */}
+              {isApps && (
+                <div className="glass-panel" style={{ padding: '12px', display: 'flex', flexDirection: 'column', gap: '10px' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '2px' }}>
+                    <Layers size={14} color="#a3a3a3" />
+                    <span style={{ fontSize: '0.78rem', fontWeight: '800', color: '#f5f5f5' }}>Konfigurasi Aplikasi & Shortcut</span>
+                  </div>
+
+                  <label style={{ fontSize: '0.74rem', fontWeight: '700', color: '#a3a3a3' }}>Tipe Aksi Apps</label>
+                  <select 
+                    className="input-field"
+                    value={editingBtn.action?.type || 'hotkey'}
+                    onChange={(e) => {
+                      const type = e.target.value;
+                      let action = { type };
+                      let sublabel = '';
+                      if (type === 'hotkey') { action.keys = 'Ctrl+Shift+M'; sublabel = 'Ctrl+Shift+M'; }
+                      else { action.target = 'steam://'; sublabel = 'App'; }
+                      setEditingBtn({ ...editingBtn, sublabel, action });
+                    }}
+                    style={{ fontSize: '0.8rem', padding: '7px 10px' }}
+                  >
+                    <option value="hotkey">Shortcut Keyboard Global</option>
+                    <option value="app">Buka Program (.exe) / Protocol URI / Website</option>
+                  </select>
+
+                  {editingBtn.action?.type === 'hotkey' && (
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                      <div>
+                        <label style={{ display: 'block', fontSize: '0.72rem', color: '#737373', marginBottom: '4px', fontWeight: '700' }}>Kombinasi Shortcut Keyboard</label>
+                        <input 
+                          type="text" 
+                          className="input-field" 
+                          value={editingBtn.action.keys || ''} 
+                          onChange={(e) => setEditingBtn({
+                            ...editingBtn,
+                            sublabel: e.target.value,
+                            action: { ...editingBtn.action, keys: e.target.value }
+                          })}
+                          placeholder="misal: Ctrl+Shift+M, Win+Shift+S, Alt+Tab"
+                        />
+                      </div>
+
+                      {/* Quick Presets for Hotkeys */}
+                      <div>
+                        <div style={{ fontSize: '0.68rem', color: '#888', marginBottom: '4px', fontWeight: '600' }}>Preset Cepat (Klik untuk isi):</div>
+                        <div style={{ display: 'flex', flexWrap: 'wrap', gap: '5px' }}>
+                          {[
+                            { label: 'Discord Mute', val: 'Ctrl+Shift+M' },
+                            { label: 'Screenshot', val: 'Win+Shift+S' },
+                            { label: 'Play/Pause', val: 'MEDIA_PLAY_PAUSE' },
+                            { label: 'Task Manager', val: 'Ctrl+Shift+Esc' }
+                          ].map(preset => (
+                            <button
+                              key={preset.label}
+                              type="button"
+                              onClick={() => setEditingBtn({
+                                ...editingBtn,
+                                sublabel: preset.val,
+                                action: { ...editingBtn.action, keys: preset.val }
+                              })}
+                              style={{
+                                background: '#1c1c1c',
+                                border: '1px solid #333',
+                                color: '#a3a3a3',
+                                fontSize: '0.68rem',
+                                padding: '3px 8px',
+                                borderRadius: '6px',
+                                cursor: 'pointer'
+                              }}
+                            >
+                              + {preset.label}
+                            </button>
+                          ))}
+                        </div>
+                      </div>
+
+                      {/* Petunjuk / Hint Box */}
+                      <div style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.07)', borderRadius: '8px', padding: '8px 10px', fontSize: '0.68rem', color: '#888', lineHeight: '1.4' }}>
+                        <div style={{ fontWeight: '700', color: '#e5e5e5', marginBottom: '3px', display: 'flex', alignItems: 'center', gap: '5px' }}>
+                          <Info size={12} color="#3b82f6" /> Petunjuk Format:
+                        </div>
+                        • Gabungkan tombol dengan tanda <code>+</code>: <code>Ctrl</code>, <code>Alt</code>, <code>Shift</code>, <code>Win</code>.<br/>
+                        • Tombol Media: <code>VOLUME_UP</code>, <code>VOLUME_DOWN</code>, <code>VOLUME_MUTE</code>, <code>MEDIA_PLAY_PAUSE</code>, <code>MEDIA_NEXT</code>.
+                      </div>
+                    </div>
+                  )}
+
+                  {editingBtn.action?.type === 'app' && (
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                      <div>
+                        <label style={{ display: 'block', fontSize: '0.72rem', color: '#737373', marginBottom: '4px', fontWeight: '700' }}>Target Program (.exe), Protocol URI, atau URL Web</label>
+                        <input 
+                          type="text" 
+                          className="input-field" 
+                          value={editingBtn.action.target || ''} 
+                          onChange={(e) => setEditingBtn({
+                            ...editingBtn,
+                            action: { ...editingBtn.action, target: e.target.value }
+                          })}
+                          placeholder="misal: steam:// atau spotify: atau https://..."
+                        />
+                      </div>
+
+                      {/* Quick Presets for Apps */}
+                      <div>
+                        <div style={{ fontSize: '0.68rem', color: '#888', marginBottom: '4px', fontWeight: '600' }}>Preset Cepat (Klik untuk isi):</div>
+                        <div style={{ display: 'flex', flexWrap: 'wrap', gap: '5px' }}>
+                          {[
+                            { label: 'Steam', val: 'steam://' },
+                            { label: 'Spotify', val: 'spotify:' },
+                            { label: 'Discord', val: 'discord:' },
+                            { label: 'YouTube', val: 'https://youtube.com' }
+                          ].map(preset => (
+                            <button
+                              key={preset.label}
+                              type="button"
+                              onClick={() => setEditingBtn({
+                                ...editingBtn,
+                                label: editingBtn.label || preset.label,
+                                action: { ...editingBtn.action, target: preset.val }
+                              })}
+                              style={{
+                                background: '#1c1c1c',
+                                border: '1px solid #333',
+                                color: '#a3a3a3',
+                                fontSize: '0.68rem',
+                                padding: '3px 8px',
+                                borderRadius: '6px',
+                                cursor: 'pointer'
+                              }}
+                            >
+                              + {preset.label}
+                            </button>
+                          ))}
+                        </div>
+                      </div>
+
+                      {/* Petunjuk / Hint Box */}
+                      <div style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.07)', borderRadius: '8px', padding: '8px 10px', fontSize: '0.68rem', color: '#888', lineHeight: '1.4' }}>
+                        <div style={{ fontWeight: '700', color: '#e5e5e5', marginBottom: '3px', display: 'flex', alignItems: 'center', gap: '5px' }}>
+                          <Info size={12} color="#3b82f6" /> Petunjuk Target:
+                        </div>
+                        • <strong>Protocol URI (Direkomendasikan):</strong> Cukup ketik <code>steam://</code>, <code>spotify:</code>, atau <code>discord:</code> (otomatis membuka di mana pun letak folder instalasinya).<br/>
+                        • <strong>Website:</strong> Awali dengan <code>https://</code> (misal: <code>https://youtube.com</code>).<br/>
+                        • <strong>Path .exe:</strong> Masukkan path lengkap, misal <code>C:\Program Files\App\app.exe</code>.
+                      </div>
+                    </div>
+                  )}
+
+                  <button 
+                    className="btn-secondary" 
+                    onClick={() => handleTrigger(editingBtn)} 
+                    style={{ width: '100%', justifyContent: 'center', padding: '7px', fontSize: '0.78rem', marginTop: '4px' }}
+                  >
+                    <Play size={13} /> Tes Jalankan Shortcut
+                  </button>
+                </div>
+              )}
+
+              {/* STICKY BOTTOM FOOTER: Prominent Simpan Perubahan Button & Delete */}
+              <div style={{ 
+                position: 'sticky', 
+                bottom: '-22px', 
+                margin: '16px -22px -22px', 
+                background: '#0d0d0d', 
+                borderTop: '1px solid #222222', 
+                padding: '14px 22px', 
+                zIndex: 10,
+                display: 'flex',
+                flexDirection: 'column',
+                gap: '8px',
+                boxShadow: '0 -10px 25px rgba(0,0,0,0.7)'
+              }}>
+                <button 
+                  className="btn-primary" 
+                  onClick={handleSaveEditingBtn}
+                  style={{ width: '100%', justifyContent: 'center', padding: '10px', fontSize: '0.85rem' }}
+                >
+                  <Check size={16} />
+                  <span>{saveSidebarSuccess ? 'Tersimpan!' : 'Simpan Perubahan'}</span>
+                </button>
+
+                <button 
+                  onClick={handleDeleteEditingBtn}
+                  style={{ background: 'none', border: 'none', color: '#ef4444', fontSize: '0.76rem', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px', cursor: 'pointer', padding: '4px' }}
+                >
+                  <Trash2 size={13} /> Hapus Card Ini
+                </button>
+              </div>
+
+            </aside>
+          );
+        })()}
       </div>
+
 
       {/* POPUP STEP 1: Pilih Tipe Card (Soundboard, Stream, Apps) */}
       {showAddChoiceModal && (
@@ -736,6 +1215,9 @@ export default function Studio({ onNavigate }) {
                       onChange={(e) => setNewCardData({ ...newCardData, obsTarget: e.target.value, sublabel: 'OBS Scene' })} 
                       placeholder="misal: Gameplay, Just Chatting, BRB"
                     />
+                    <div style={{ marginTop: '6px', fontSize: '0.68rem', color: '#737373', display: 'flex', alignItems: 'center', gap: '4px' }}>
+                      <Info size={11} color="#3b82f6" /> Pastikan nama scene persis sama dengan yang ada di OBS Studio Anda.
+                    </div>
                   </div>
                 )}
 
@@ -749,6 +1231,9 @@ export default function Studio({ onNavigate }) {
                       onChange={(e) => setNewCardData({ ...newCardData, obsTarget: e.target.value, sublabel: 'OBS Audio' })} 
                       placeholder="misal: Mic/Aux atau Desktop Audio"
                     />
+                    <div style={{ marginTop: '6px', fontSize: '0.68rem', color: '#737373', display: 'flex', alignItems: 'center', gap: '4px' }}>
+                      <Info size={11} color="#3b82f6" /> Nama source audio di OBS Studio (misal: Mic/Aux).
+                    </div>
                   </div>
                 )}
 
@@ -762,22 +1247,152 @@ export default function Studio({ onNavigate }) {
                       onChange={(e) => setNewCardData({ ...newCardData, hotkeys: e.target.value, sublabel: e.target.value })} 
                       placeholder="misal: Ctrl+F1, Ctrl+F2, Ctrl+F3"
                     />
+                    <div style={{ marginTop: '6px', fontSize: '0.68rem', color: '#737373', display: 'flex', alignItems: 'center', gap: '4px' }}>
+                      <Info size={11} color="#3b82f6" /> Samakan dengan hotkey yang diset di TikTok Live Studio {'>'} Settings {'>'} Hotkeys.
+                    </div>
                   </div>
                 )}
               </>
             )}
 
             {creationType === 'Apps' && (
-              <div style={{ marginBottom: '14px' }}>
-                <label style={{ display: 'block', fontSize: '0.75rem', fontWeight: '700', color: '#a3a3a3', marginBottom: '6px' }}>Kombinasi Shortcut Keyboard</label>
-                <input 
-                  type="text" 
-                  className="input-field" 
-                  value={newCardData.hotkeys} 
-                  onChange={(e) => setNewCardData({ ...newCardData, hotkeys: e.target.value, sublabel: e.target.value })} 
-                  placeholder="misal: Ctrl+Shift+M, Win+Shift+S, Alt+Tab"
-                />
-              </div>
+              <>
+                <div style={{ marginBottom: '14px' }}>
+                  <label style={{ display: 'block', fontSize: '0.75rem', fontWeight: '700', color: '#a3a3a3', marginBottom: '6px' }}>Tipe Aksi Apps</label>
+                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px' }}>
+                    <button
+                      type="button"
+                      onClick={() => setNewCardData({ ...newCardData, appSubtype: 'app', sublabel: newCardData.appTarget || 'steam://' })}
+                      style={{
+                        padding: '8px',
+                        borderRadius: '8px',
+                        border: newCardData.appSubtype === 'app' ? '1px solid #ffffff' : '1px solid #2a2a2a',
+                        background: newCardData.appSubtype === 'app' ? '#222' : '#141414',
+                        color: newCardData.appSubtype === 'app' ? '#fff' : '#888',
+                        fontSize: '0.75rem',
+                        fontWeight: '600',
+                        cursor: 'pointer'
+                      }}
+                    >
+                      Buka App / Game / URL
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setNewCardData({ ...newCardData, appSubtype: 'hotkey', sublabel: newCardData.hotkeys || 'Ctrl+Shift+M' })}
+                      style={{
+                        padding: '8px',
+                        borderRadius: '8px',
+                        border: newCardData.appSubtype === 'hotkey' ? '1px solid #ffffff' : '1px solid #2a2a2a',
+                        background: newCardData.appSubtype === 'hotkey' ? '#222' : '#141414',
+                        color: newCardData.appSubtype === 'hotkey' ? '#fff' : '#888',
+                        fontSize: '0.75rem',
+                        fontWeight: '600',
+                        cursor: 'pointer'
+                      }}
+                    >
+                      Shortcut Keyboard
+                    </button>
+                  </div>
+                </div>
+
+                {newCardData.appSubtype === 'app' ? (
+                  <div style={{ marginBottom: '14px' }}>
+                    <label style={{ display: 'block', fontSize: '0.75rem', fontWeight: '700', color: '#a3a3a3', marginBottom: '6px' }}>Target Program / URI / URL</label>
+                    <input 
+                      type="text" 
+                      className="input-field" 
+                      value={newCardData.appTarget || ''} 
+                      onChange={(e) => setNewCardData({ ...newCardData, appTarget: e.target.value, sublabel: e.target.value })} 
+                      placeholder="misal: steam:// atau spotify: atau https://youtube.com"
+                    />
+
+                    {/* Quick Presets for Apps */}
+                    <div style={{ marginTop: '8px' }}>
+                      <div style={{ fontSize: '0.68rem', color: '#888', marginBottom: '5px', fontWeight: '600' }}>Pilihan Cepat (Klik untuk isi):</div>
+                      <div style={{ display: 'flex', flexWrap: 'wrap', gap: '5px' }}>
+                        {[
+                          { label: 'Steam', target: 'steam://' },
+                          { label: 'Spotify', target: 'spotify:' },
+                          { label: 'Discord', target: 'discord:' },
+                          { label: 'YouTube', target: 'https://youtube.com' }
+                        ].map(p => (
+                          <button
+                            key={p.label}
+                            type="button"
+                            onClick={() => setNewCardData({ 
+                              ...newCardData, 
+                              label: newCardData.label === 'Buka Steam' || !newCardData.label ? `Buka ${p.label}` : newCardData.label,
+                              appTarget: p.target, 
+                              sublabel: p.target 
+                            })}
+                            style={{
+                              background: '#1c1c1c',
+                              border: '1px solid #333',
+                              color: '#d4d4d4',
+                              fontSize: '0.68rem',
+                              padding: '3px 8px',
+                              borderRadius: '6px',
+                              cursor: 'pointer'
+                            }}
+                          >
+                            + {p.label}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+
+                    <div style={{ marginTop: '8px', background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.07)', borderRadius: '8px', padding: '8px', fontSize: '0.68rem', color: '#888', lineHeight: '1.4' }}>
+                      <strong style={{ color: '#e5e5e5' }}>Tips:</strong> Gunakan <code>steam://</code>, <code>spotify:</code>, atau <code>discord:</code> agar otomatis terbuka di Windows tanpa perlu mencari lokasi folder instalasi.
+                    </div>
+                  </div>
+                ) : (
+                  <div style={{ marginBottom: '14px' }}>
+                    <label style={{ display: 'block', fontSize: '0.75rem', fontWeight: '700', color: '#a3a3a3', marginBottom: '6px' }}>Kombinasi Shortcut Keyboard</label>
+                    <input 
+                      type="text" 
+                      className="input-field" 
+                      value={newCardData.hotkeys || ''} 
+                      onChange={(e) => setNewCardData({ ...newCardData, hotkeys: e.target.value, sublabel: e.target.value })} 
+                      placeholder="misal: Ctrl+Shift+M, Win+Shift+S, Alt+Tab"
+                    />
+
+                    {/* Quick Presets for Hotkeys */}
+                    <div style={{ marginTop: '8px' }}>
+                      <div style={{ fontSize: '0.68rem', color: '#888', marginBottom: '5px', fontWeight: '600' }}>Preset Shortcut Populer:</div>
+                      <div style={{ display: 'flex', flexWrap: 'wrap', gap: '5px' }}>
+                        {[
+                          { label: 'Discord Mute', keys: 'Ctrl+Shift+M' },
+                          { label: 'Screenshot', keys: 'Win+Shift+S' },
+                          { label: 'Play/Pause', keys: 'MEDIA_PLAY_PAUSE' },
+                          { label: 'Task Manager', keys: 'Ctrl+Shift+Esc' }
+                        ].map(p => (
+                          <button
+                            key={p.label}
+                            type="button"
+                            onClick={() => setNewCardData({ 
+                              ...newCardData, 
+                              label: newCardData.label || p.label,
+                              hotkeys: p.keys, 
+                              sublabel: p.keys 
+                            })}
+                            style={{
+                              background: '#1c1c1c',
+                              border: '1px solid #333',
+                              color: '#d4d4d4',
+                              fontSize: '0.68rem',
+                              padding: '3px 8px',
+                              borderRadius: '6px',
+                              cursor: 'pointer'
+                            }}
+                          >
+                            + {p.label}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+                )}
+              </>
             )}
 
             <div style={{ display: 'flex', gap: '8px', justifyContent: 'flex-end', marginTop: '18px' }}>
@@ -811,6 +1426,248 @@ export default function Studio({ onNavigate }) {
 
             <div>
               <button className="btn-primary" onClick={() => setShowQrModal(false)}>Tutup</button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* COMPREHENSIVE GUIDE MODAL (Petunjuk Shortcut Apps & Streaming) */}
+      {showGuideModal && (
+        <div className="modal-overlay" onClick={() => setShowGuideModal(false)}>
+          <div 
+            className="modal-content" 
+            style={{ maxWidth: '680px', maxHeight: '85vh', overflowY: 'auto', textAlign: 'left', padding: '28px' }} 
+            onClick={(e) => e.stopPropagation()}
+          >
+            {/* Header */}
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '16px' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                <div style={{ width: '36px', height: '36px', borderRadius: '10px', background: '#1e1e1e', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                  <BookOpen size={18} color="#ffffff" />
+                </div>
+                <div>
+                  <h3 style={{ fontSize: '1.15rem', fontWeight: '800', color: '#fff', margin: 0 }}>Panduan Shortcut & Streaming</h3>
+                  <div style={{ fontSize: '0.74rem', color: '#888' }}>Petunjuk lengkap membuka aplikasi, game, OBS Studio & TikTok Live</div>
+                </div>
+              </div>
+              <button onClick={() => setShowGuideModal(false)} style={{ background: 'none', border: 'none', color: '#737373', cursor: 'pointer', padding: '4px' }}>
+                <X size={18} />
+              </button>
+            </div>
+
+            {/* Navigation Tabs */}
+            <div style={{ display: 'flex', gap: '6px', borderBottom: '1px solid #222', paddingBottom: '12px', marginBottom: '18px' }}>
+              {[
+                { id: 'apps', label: 'Buka Apps & Game', icon: Layers },
+                { id: 'stream', label: 'OBS & TikTok Live', icon: Radio },
+                { id: 'hotkeys', label: 'Shortcut Keyboard & Media', icon: HelpCircle }
+              ].map(tab => {
+                const IconComponent = tab.icon;
+                const isActive = guideTab === tab.id;
+                return (
+                  <button
+                    key={tab.id}
+                    onClick={() => setGuideTab(tab.id)}
+                    style={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '7px',
+                      background: isActive ? '#222' : 'transparent',
+                      border: isActive ? '1px solid #444' : '1px solid transparent',
+                      color: isActive ? '#fff' : '#888',
+                      padding: '7px 14px',
+                      borderRadius: '8px',
+                      fontSize: '0.78rem',
+                      fontWeight: '600',
+                      cursor: 'pointer'
+                    }}
+                  >
+                    <IconComponent size={14} />
+                    <span>{tab.label}</span>
+                  </button>
+                );
+              })}
+            </div>
+
+            {/* TAB CONTENT 1: BUKA APPS & GAME */}
+            {guideTab === 'apps' && (
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '16px', fontSize: '0.82rem', color: '#cccccc' }}>
+                <div>
+                  <h4 style={{ color: '#fff', fontSize: '0.92rem', marginBottom: '6px', fontWeight: '700' }}>1. Cara Terbaik: Gunakan Protocol URI (100% Berhasil)</h4>
+                  <p style={{ margin: 0, lineHeight: '1.5', color: '#999' }}>
+                    Di sistem operasi Windows, aplikasi modern mendaftarkan tautan protokol khusus. Dengan protokol ini, Anda <strong>tidak perlu mencari lokasi folder .exe</strong> (seperti C:\Program Files...). Cukup masukkan kodenya ke kolom target:
+                  </p>
+                </div>
+
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
+                  <div style={{ background: '#161616', border: '1px solid #262626', borderRadius: '10px', padding: '12px' }}>
+                    <div style={{ fontWeight: '700', color: '#fff', marginBottom: '4px' }}>Steam & Games</div>
+                    <div style={{ fontFamily: 'var(--font-mono)', fontSize: '0.75rem', color: '#38bdf8', marginBottom: '6px' }}>steam://</div>
+                    <div style={{ fontSize: '0.72rem', color: '#888' }}>
+                      Membuka aplikasi Steam langsung.<br/>
+                      <span style={{ color: '#aaa' }}>Tips Game:</span> <code>steam://run/730</code> langsung menjalankan CS:GO!
+                    </div>
+                  </div>
+
+                  <div style={{ background: '#161616', border: '1px solid #262626', borderRadius: '10px', padding: '12px' }}>
+                    <div style={{ fontWeight: '700', color: '#fff', marginBottom: '4px' }}>Spotify Desktop</div>
+                    <div style={{ fontFamily: 'var(--font-mono)', fontSize: '0.75rem', color: '#4ade80', marginBottom: '6px' }}>spotify:</div>
+                    <div style={{ fontSize: '0.72rem', color: '#888' }}>
+                      Otomatis membuka dan fokus ke jendela Spotify di PC Anda.
+                    </div>
+                  </div>
+
+                  <div style={{ background: '#161616', border: '1px solid #262626', borderRadius: '10px', padding: '12px' }}>
+                    <div style={{ fontWeight: '700', color: '#fff', marginBottom: '4px' }}>Discord</div>
+                    <div style={{ fontFamily: 'var(--font-mono)', fontSize: '0.75rem', color: '#818cf8', marginBottom: '6px' }}>discord:</div>
+                    <div style={{ fontSize: '0.72rem', color: '#888' }}>
+                      Membuka aplikasi Discord desktop tanpa perlu mencari file exe di AppData.
+                    </div>
+                  </div>
+
+                  <div style={{ background: '#161616', border: '1px solid #262626', borderRadius: '10px', padding: '12px' }}>
+                    <div style={{ fontWeight: '700', color: '#fff', marginBottom: '4px' }}>Aplikasi Windows Bawaan</div>
+                    <div style={{ fontFamily: 'var(--font-mono)', fontSize: '0.75rem', color: '#fbbf24', marginBottom: '6px' }}>calc: atau ms-settings:</div>
+                    <div style={{ fontSize: '0.72rem', color: '#888' }}>
+                      <code>calc:</code> untuk Kalkulator, <code>ms-settings:</code> untuk Windows Settings.
+                    </div>
+                  </div>
+                </div>
+
+                <div style={{ borderTop: '1px solid #222', paddingTop: '14px' }}>
+                  <h4 style={{ color: '#fff', fontSize: '0.92rem', marginBottom: '6px', fontWeight: '700' }}>2. Membuka Website / Tautan Browser</h4>
+                  <p style={{ margin: 0, lineHeight: '1.5', color: '#999' }}>
+                    Untuk membuka situs web di browser default Anda, cukup ketikkan alamat lengkap berawalan <code>https://</code>:
+                  </p>
+                  <div style={{ marginTop: '8px', background: '#161616', border: '1px solid #262626', borderRadius: '8px', padding: '8px 12px', fontFamily: 'var(--font-mono)', fontSize: '0.75rem', color: '#e5e5e5' }}>
+                    https://youtube.com &nbsp;|&nbsp; https://twitch.tv &nbsp;|&nbsp; https://chatgpt.com
+                  </div>
+                </div>
+
+                <div style={{ borderTop: '1px solid #222', paddingTop: '14px' }}>
+                  <h4 style={{ color: '#fff', fontSize: '0.92rem', marginBottom: '6px', fontWeight: '700' }}>3. Menjalankan File Executable (.exe)</h4>
+                  <p style={{ margin: 0, lineHeight: '1.5', color: '#999' }}>
+                    Jika aplikasi Anda tidak memiliki protokol URI, Anda dapat memasukkan path lengkap file <code>.exe</code>-nya:
+                  </p>
+                  <div style={{ marginTop: '8px', background: '#161616', border: '1px solid #262626', borderRadius: '8px', padding: '8px 12px', fontFamily: 'var(--font-mono)', fontSize: '0.72rem', color: '#e5e5e5' }}>
+                    C:\Program Files\Notepad++\notepad++.exe
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* TAB CONTENT 2: OBS & TIKTOK LIVE */}
+            {guideTab === 'stream' && (
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '16px', fontSize: '0.82rem', color: '#cccccc' }}>
+                <div>
+                  <h4 style={{ color: '#fff', fontSize: '0.92rem', marginBottom: '6px', fontWeight: '700' }}>Integrasi OBS Studio (WebSocket)</h4>
+                  <p style={{ margin: 0, lineHeight: '1.5', color: '#999' }}>
+                    MyStreamBoard dapat mengontrol OBS Studio secara real-time via koneksi WebSocket lokal (Port 4455):
+                  </p>
+                </div>
+
+                <div style={{ background: '#161616', border: '1px solid #262626', borderRadius: '10px', padding: '14px' }}>
+                  <div style={{ fontWeight: '700', color: '#fff', marginBottom: '6px' }}>Langkah Pengaturan OBS Studio:</div>
+                  <ol style={{ margin: 0, paddingLeft: '18px', color: '#a3a3a3', lineHeight: '1.6', fontSize: '0.78rem' }}>
+                    <li>Buka <strong>OBS Studio</strong> di PC Anda.</li>
+                    <li>Buka menu atas: <strong>Tools</strong> {'>'} <strong>WebSocket Server Settings</strong>.</li>
+                    <li>Centang opsi <strong>"Enable WebSocket server"</strong>.</li>
+                    <li>Pastikan Server Port bernilai <strong>4455</strong>.</li>
+                    <li>Klik <strong>Apply</strong> dan <strong>OK</strong>. Selesai! MyStreamBoard akan otomatis terhubung.</li>
+                  </ol>
+                </div>
+
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
+                  <div style={{ background: '#161616', border: '1px solid #262626', borderRadius: '10px', padding: '12px' }}>
+                    <div style={{ fontWeight: '700', color: '#fff', marginBottom: '4px' }}>Ganti Scene (obs_scene)</div>
+                    <div style={{ fontSize: '0.74rem', color: '#888', lineHeight: '1.4' }}>
+                      Ketikkan nama Scene persis seperti yang tertulis di daftar Scene OBS Anda (misal: <code>Gameplay</code>, <code>Just Chatting</code>, <code>BRB</code>).
+                    </div>
+                  </div>
+
+                  <div style={{ background: '#161616', border: '1px solid #262626', borderRadius: '10px', padding: '12px' }}>
+                    <div style={{ fontWeight: '700', color: '#fff', marginBottom: '4px' }}>Toggle Mute Mic (obs_mute)</div>
+                    <div style={{ fontSize: '0.74rem', color: '#888', lineHeight: '1.4' }}>
+                      Ketikkan nama sumber audio yang ada di Audio Mixer OBS (misal: <code>Mic/Aux</code> atau <code>Desktop Audio</code>).
+                    </div>
+                  </div>
+                </div>
+
+                <div style={{ borderTop: '1px solid #222', paddingTop: '14px' }}>
+                  <h4 style={{ color: '#fff', fontSize: '0.92rem', marginBottom: '6px', fontWeight: '700' }}>Integrasi TikTok Live Studio (Global Hotkeys)</h4>
+                  <p style={{ margin: 0, lineHeight: '1.5', color: '#999' }}>
+                    Karena TikTok Live Studio belum menyediakan API WebSocket publik, kontrol dilakukan dengan sangat stabil menggunakan <strong>Global Hotkey</strong>:
+                  </p>
+                  <ol style={{ margin: '8px 0 0 0', paddingLeft: '18px', color: '#a3a3a3', lineHeight: '1.6', fontSize: '0.78rem' }}>
+                    <li>Buka <strong>TikTok Live Studio</strong> {'>'} klik icon gear <strong>Settings</strong> di kanan atas {'>'} pilih tab <strong>Hotkeys</strong>.</li>
+                    <li>Atur shortcut untuk Scene atau Mute (contoh: Scene Game = <code>Ctrl+F1</code>, Scene Cam = <code>Ctrl+F2</code>).</li>
+                    <li>Di MyStreamBoard, buat Card tipe <strong>Stream {'>'} TikTok Studio</strong> dan masukkan hotkey yang sama (<code>Ctrl+F1</code>). Saat ditekan di HP, scene TikTok langsung berubah!</li>
+                  </ol>
+                </div>
+              </div>
+            )}
+
+            {/* TAB CONTENT 3: SHORTCUT KEYBOARD & MEDIA */}
+            {guideTab === 'hotkeys' && (
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '16px', fontSize: '0.82rem', color: '#cccccc' }}>
+                <div>
+                  <h4 style={{ color: '#fff', fontSize: '0.92rem', marginBottom: '6px', fontWeight: '700' }}>Shortcut Keyboard & Tombol Media Windows</h4>
+                  <p style={{ margin: 0, lineHeight: '1.5', color: '#999' }}>
+                    MyStreamBoard dapat menyimulasikan penekanan tombol fisik keyboard hingga tombol kontrol multimedia Windows tanpa delay:
+                  </p>
+                </div>
+
+                <div style={{ background: '#161616', border: '1px solid #262626', borderRadius: '10px', padding: '14px' }}>
+                  <div style={{ fontWeight: '700', color: '#fff', marginBottom: '10px' }}>Kombinasi Populer untuk Streamer & Gamer:</div>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid #222', paddingBottom: '6px' }}>
+                      <span style={{ color: '#a3a3a3' }}>Mute / Unmute Mic Discord</span>
+                      <code style={{ background: '#222', padding: '3px 8px', borderRadius: '4px', color: '#fff', fontFamily: 'var(--font-mono)' }}>Ctrl+Shift+M</code>
+                    </div>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid #222', paddingBottom: '6px' }}>
+                      <span style={{ color: '#a3a3a3' }}>Deafen / Mute Suara Teman Discord</span>
+                      <code style={{ background: '#222', padding: '3px 8px', borderRadius: '4px', color: '#fff', fontFamily: 'var(--font-mono)' }}>Ctrl+Shift+D</code>
+                    </div>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid #222', paddingBottom: '6px' }}>
+                      <span style={{ color: '#a3a3a3' }}>Snipping Tool / Screenshot Cepat</span>
+                      <code style={{ background: '#222', padding: '3px 8px', borderRadius: '4px', color: '#fff', fontFamily: 'var(--font-mono)' }}>Win+Shift+S</code>
+                    </div>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                      <span style={{ color: '#a3a3a3' }}>Buka Task Manager</span>
+                      <code style={{ background: '#222', padding: '3px 8px', borderRadius: '4px', color: '#fff', fontFamily: 'var(--font-mono)' }}>Ctrl+Shift+Esc</code>
+                    </div>
+                  </div>
+                </div>
+
+                <div style={{ background: '#161616', border: '1px solid #262626', borderRadius: '10px', padding: '14px' }}>
+                  <div style={{ fontWeight: '700', color: '#fff', marginBottom: '10px' }}>Tombol Multimedia Windows:</div>
+                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px' }}>
+                    <div style={{ background: '#111', padding: '8px 10px', borderRadius: '6px', border: '1px solid #222' }}>
+                      <div style={{ fontFamily: 'var(--font-mono)', fontSize: '0.74rem', color: '#38bdf8' }}>MEDIA_PLAY_PAUSE</div>
+                      <div style={{ fontSize: '0.7rem', color: '#777' }}>Play/Pause Spotify / YouTube</div>
+                    </div>
+                    <div style={{ background: '#111', padding: '8px 10px', borderRadius: '6px', border: '1px solid #222' }}>
+                      <div style={{ fontFamily: 'var(--font-mono)', fontSize: '0.74rem', color: '#38bdf8' }}>MEDIA_NEXT</div>
+                      <div style={{ fontSize: '0.7rem', color: '#777' }}>Lagu Berikutnya</div>
+                    </div>
+                    <div style={{ background: '#111', padding: '8px 10px', borderRadius: '6px', border: '1px solid #222' }}>
+                      <div style={{ fontFamily: 'var(--font-mono)', fontSize: '0.74rem', color: '#38bdf8' }}>VOLUME_UP / DOWN</div>
+                      <div style={{ fontSize: '0.7rem', color: '#777' }}>Naikkan / Turunkan Volume PC</div>
+                    </div>
+                    <div style={{ background: '#111', padding: '8px 10px', borderRadius: '6px', border: '1px solid #222' }}>
+                      <div style={{ fontFamily: 'var(--font-mono)', fontSize: '0.74rem', color: '#38bdf8' }}>VOLUME_MUTE</div>
+                      <div style={{ fontSize: '0.7rem', color: '#777' }}>Mute Suara Speaker Master</div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* Footer Buttons */}
+            <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: '24px', borderTop: '1px solid #222', paddingTop: '16px' }}>
+              <button className="btn-primary" onClick={() => setShowGuideModal(false)}>
+                Saya Mengerti
+              </button>
             </div>
           </div>
         </div>

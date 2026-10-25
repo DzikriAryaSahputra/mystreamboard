@@ -45,8 +45,8 @@ export default function Landing({ onNavigate }) {
       {/* Navbar */}
       <nav className="glass-nav" style={{ position: 'sticky', top: 0, padding: '16px 24px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', zIndex: 100 }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-          <div style={{ width: '36px', height: '36px', borderRadius: '10px', background: '#1c1c1c', border: '1px solid #2e2e2e', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-            <SlidersHorizontal size={18} color="#f5f5f5" />
+          <div style={{ width: '38px', height: '38px', borderRadius: '10px', background: '#141414', border: '1px solid #282828', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '3px' }}>
+            <img src="/app-icon.png" alt="MyStreamBoard" style={{ width: '100%', height: '100%', objectFit: 'contain' }} />
           </div>
           <span style={{ fontSize: '1.15rem', fontWeight: '800', letterSpacing: '-0.02em', color: '#f5f5f5' }}>
             MyStreamBoard
