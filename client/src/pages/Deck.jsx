@@ -296,10 +296,16 @@ export default function Deck({ onNavigate }) {
             margin: '0 auto'
           }}
         >
-          {activePage?.buttons?.map((btn) => {
-            const isPressed = pressedBtnId === btn.id;
-            const isFullArtwork = btn.imageMode === 'full' && btn.image;
-            const isSoundboard = btn.category === 'Soundboard' || btn.action?.type === 'sound' || activePage.category === 'Soundboard';
+          {(!activePage?.buttons || activePage.buttons.length === 0) ? (
+            <div style={{ gridColumn: '1 / -1', textAlign: 'center', padding: '60px 20px', color: '#737373' }}>
+              <div style={{ fontSize: '0.95rem', fontWeight: '700', color: '#e5e5e5', marginBottom: '6px' }}>Belum Ada Card di Halaman Ini</div>
+              <div style={{ fontSize: '0.78rem', color: '#888' }}>Buka Studio di PC untuk menambahkan card Soundboard, Stream, atau Apps Anda.</div>
+            </div>
+          ) : (
+            activePage.buttons.map((btn) => {
+              const isPressed = pressedBtnId === btn.id;
+              const isFullArtwork = btn.imageMode === 'full' && btn.image;
+              const isSoundboard = btn.category === 'Soundboard' || btn.action?.type === 'sound' || activePage.category === 'Soundboard';
 
             return (
               <div
@@ -339,7 +345,7 @@ export default function Deck({ onNavigate }) {
                 )}
               </div>
             );
-          })}
+          }))}
         </div>
       </main>
 

@@ -21,6 +21,17 @@ dist/
 build/
 client/dist/
 
+# User soundboard audio and custom uploaded artwork (clean on clone)
+sounds/*
+!sounds/.gitkeep
+
+data/uploads/*
+!data/uploads/.gitkeep
+!data/uploads/app-icon.png
+!data/uploads/app-logo.jpg
+!data/uploads/obs.svg
+!data/uploads/tiktok.svg
+
 # Local data & logs
 *.log
 npm-debug.log*
