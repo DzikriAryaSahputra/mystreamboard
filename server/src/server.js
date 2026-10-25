@@ -218,8 +218,20 @@ if (fs.existsSync(CLIENT_DIST)) {
   });
 }
 
+// Error handler
+server.on('error', (err) => {
+  if (err.code === 'EADDRINUSE') {
+    console.error(`\n❌ [ERROR] Port ${PORT} sedang dipakai oleh proses lain!`);
+    console.error(`👉 Solusi: Tutup terminal server yang lama, atau jalankan perintah: taskkill /F /IM node.exe\n`);
+    process.exit(1);
+  } else {
+    console.error('Server error:', err);
+  }
+});
+
 // Start Server
 server.listen(PORT, '0.0.0.0', () => {
+
   console.clear();
   console.log('=================================================================');
   console.log('  ⚡ MyStreamBoard Desktop Agent v1.0.0                          ');
