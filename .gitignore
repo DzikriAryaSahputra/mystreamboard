@@ -32,6 +32,10 @@ data/uploads/*
 !data/uploads/obs.svg
 !data/uploads/tiktok.svg
 
+client/public/uploads/*
+!client/public/uploads/obs.svg
+!client/public/uploads/tiktok.svg
+
 # Local data & logs
 *.log
 npm-debug.log*

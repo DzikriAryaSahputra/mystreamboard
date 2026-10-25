@@ -32,19 +32,23 @@ export function playSound(soundName, volume = 1.0) {
 
     // Stop currently running playback if single-instance, or let overlap
     // Using presentationCore MediaPlayer
-    const normalizedPath = filePath.replace(/\\/g, '\\\\');
+    const normalizedPath = filePath.replace(/\\/g, '\\\\').replace(/'/g, "''");
     const psScript = `
 Add-Type -AssemblyName presentationCore
 $player = New-Object System.Windows.Media.MediaPlayer
 $player.Volume = ${Math.max(0, Math.min(1, volume))}
 $player.Open([Uri]'${normalizedPath}')
 $player.Play()
-Start-Sleep -Milliseconds 200
-# Wait until playback finishes or max 15 seconds
+Start-Sleep -Milliseconds 300
 $timeout = 0
-while ($player.Position -lt $player.NaturalDuration.TimeSpan -and $timeout -lt 150) {
+while ($timeout -lt 600) {
     Start-Sleep -Milliseconds 100
     $timeout++
+    if ($player.NaturalDuration.HasTimeSpan) {
+        if ($player.Position -ge $player.NaturalDuration.TimeSpan) {
+            break
+        }
+    }
 }
 $player.Close()
 `;

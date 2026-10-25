@@ -14,7 +14,94 @@
       "category": "Soundboard",
       "gridCols": 4,
       "gridRows": 3,
-      "buttons": []
+      "buttons": [
+        {
+          "id": "sb_sponge",
+          "row": 0,
+          "col": 0,
+          "category": "Soundboard",
+          "label": "Crowd Laugh",
+          "sublabel": "",
+          "image": "/uploads/1792930407353_624564188_4220165541576045_5278761547024391139_n.jpg",
+          "imageMode": "full",
+          "color": "#1c1c1c",
+          "volume": 80,
+          "action": {
+            "type": "sound",
+            "sound": "1792932676060_funny_82hiegE.mp3",
+            "volume": 0.8
+          },
+          "pageName": "Soundboard"
+        },
+        {
+          "id": "sb_speed",
+          "row": 0,
+          "col": 1,
+          "category": "Soundboard",
+          "label": "Dexter Meme",
+          "sublabel": "",
+          "image": "/uploads/1792930520244_b6cd5542f28ff40d04c7271dbbe0c541.jpg",
+          "imageMode": "full",
+          "color": "#1c1c1c",
+          "volume": 100,
+          "action": {
+            "type": "sound",
+            "sound": "1792932666079_dexter-meme.mp3",
+            "volume": 1
+          },
+          "pageName": "Soundboard"
+        },
+        {
+          "id": "sb_stay",
+          "row": 0,
+          "col": 2,
+          "category": "Soundboard",
+          "label": "FAHHH",
+          "sublabel": "",
+          "image": "/uploads/1792930569589_aa5ae0092a9818d3b616caca940a19ed.jpg",
+          "imageMode": "full",
+          "color": "#1c1c1c",
+          "volume": 81,
+          "action": {
+            "type": "sound",
+            "sound": "1792932734927_faaah.mp3",
+            "volume": 0.81
+          },
+          "pageName": "Soundboard"
+        },
+        {
+          "id": "sb_boom",
+          "row": 0,
+          "col": 3,
+          "category": "Soundboard",
+          "label": "Vine Boom",
+          "sublabel": "",
+          "image": "/uploads/1792930590304_Screenshot_20251205_185636_TikTok.jpg",
+          "imageMode": "full",
+          "color": "#1c1c1c",
+          "volume": 90,
+          "action": {
+            "type": "sound",
+            "sound": "1792932747723_vine-boom.mp3",
+            "volume": 0.9
+          },
+          "pageName": "Soundboard"
+        },
+        {
+          "id": "sb_stop",
+          "row": 1,
+          "col": 3,
+          "category": "Soundboard",
+          "label": "Stop All Audio",
+          "sublabel": "",
+          "icon": "Square",
+          "color": "#1c1c1c",
+          "volume": 0,
+          "action": {
+            "type": "stop_sounds"
+          }
+        }
+      ]
     },
     {
       "id": "page_live",
@@ -22,7 +109,153 @@
       "category": "Stream",
       "gridCols": 4,
       "gridRows": 3,
-      "buttons": []
+      "buttons": [
+        {
+          "id": "b_brb",
+          "row": 0,
+          "col": 2,
+          "category": "Stream",
+          "label": "BRB Screen",
+          "sublabel": "OBS Scene",
+          "icon": "Coffee",
+          "color": "#1c1c1c",
+          "action": {
+            "type": "obs_scene",
+            "scene": "BRB"
+          }
+        },
+        {
+          "id": "b_rec",
+          "row": 0,
+          "col": 3,
+          "category": "Stream",
+          "label": "Record Toggle",
+          "sublabel": "OBS Rec",
+          "icon": "CircleDot",
+          "color": "#1c1c1c",
+          "action": {
+            "type": "obs_record"
+          }
+        },
+        {
+          "id": "b_mic",
+          "row": 1,
+          "col": 0,
+          "category": "Stream",
+          "label": "Mic Mute",
+          "sublabel": "OBS Mic",
+          "icon": "Mic",
+          "color": "#1c1c1c",
+          "action": {
+            "type": "obs_mute",
+            "input": "Mic/Aux"
+          }
+        },
+        {
+          "id": "b_desk",
+          "row": 1,
+          "col": 1,
+          "category": "Stream",
+          "label": "Desktop Audio",
+          "sublabel": "OBS Desktop",
+          "icon": "Volume2",
+          "color": "#1c1c1c",
+          "action": {
+            "type": "obs_mute",
+            "input": "Desktop Audio"
+          }
+        },
+        {
+          "id": "b_disc_mute",
+          "row": 1,
+          "col": 2,
+          "category": "Stream",
+          "label": "Discord Mute",
+          "sublabel": "Ctrl+Shift+M",
+          "image": "/uploads/1792930825563_discord-logo.png",
+          "imageMode": "thumbnail",
+          "color": "#1c1c1c",
+          "action": {
+            "type": "hotkey",
+            "keys": "Ctrl+Shift+M"
+          },
+          "pageName": "Stream"
+        },
+        {
+          "id": "b_disc_deaf",
+          "row": 1,
+          "col": 3,
+          "category": "Stream",
+          "label": "Discord Deafen",
+          "sublabel": "Ctrl+Shift+D",
+          "image": "/uploads/1792930810901_discord-logo.png",
+          "imageMode": "thumbnail",
+          "color": "#1c1c1c",
+          "action": {
+            "type": "hotkey",
+            "keys": "Ctrl+Shift+D"
+          },
+          "pageName": "Stream"
+        },
+        {
+          "id": "b_tt_s1",
+          "row": 2,
+          "col": 0,
+          "category": "Stream",
+          "label": "TikTok Scene 1",
+          "sublabel": "Ctrl+F1",
+          "image": "/uploads/tiktok.svg",
+          "imageMode": "thumbnail",
+          "color": "#1c1c1c",
+          "action": {
+            "type": "hotkey",
+            "keys": "Ctrl+F1"
+          }
+        },
+        {
+          "id": "b_tt_s2",
+          "row": 2,
+          "col": 1,
+          "category": "Stream",
+          "label": "TikTok Scene 2",
+          "sublabel": "Ctrl+F2",
+          "image": "/uploads/tiktok.svg",
+          "imageMode": "thumbnail",
+          "color": "#1c1c1c",
+          "action": {
+            "type": "hotkey",
+            "keys": "Ctrl+F2"
+          }
+        },
+        {
+          "id": "b_tt_mute",
+          "row": 2,
+          "col": 2,
+          "category": "Stream",
+          "label": "TikTok Mic",
+          "sublabel": "Ctrl+F3",
+          "icon": "MicOff",
+          "color": "#1c1c1c",
+          "action": {
+            "type": "hotkey",
+            "keys": "Ctrl+F3"
+          }
+        },
+        {
+          "id": "b_screen",
+          "row": 2,
+          "col": 3,
+          "category": "Stream",
+          "label": "Screenshot",
+          "sublabel": "Win+Shift+S",
+          "icon": "Camera",
+          "color": "#1c1c1c",
+          "action": {
+            "type": "hotkey",
+            "keys": "Win+Shift+S"
+          }
+        }
+      ]
     },
     {
       "id": "page_media",
@@ -30,7 +263,198 @@
       "category": "Apps",
       "gridCols": 4,
       "gridRows": 3,
-      "buttons": []
+      "buttons": [
+        {
+          "id": "m_play",
+          "row": 0,
+          "col": 0,
+          "category": "Apps",
+          "label": "Play / Pause",
+          "sublabel": "Media",
+          "icon": "Play",
+          "color": "#1c1c1c",
+          "action": {
+            "type": "hotkey",
+            "keys": "MEDIA_PLAY_PAUSE"
+          }
+        },
+        {
+          "id": "m_prev",
+          "row": 0,
+          "col": 1,
+          "category": "Apps",
+          "label": "Prev Track",
+          "sublabel": "Media",
+          "icon": "SkipBack",
+          "color": "#1c1c1c",
+          "action": {
+            "type": "hotkey",
+            "keys": "MEDIA_PREV"
+          }
+        },
+        {
+          "id": "m_next",
+          "row": 0,
+          "col": 2,
+          "category": "Apps",
+          "label": "Next Track",
+          "sublabel": "Media",
+          "icon": "SkipForward",
+          "color": "#1c1c1c",
+          "action": {
+            "type": "hotkey",
+            "keys": "MEDIA_NEXT"
+          }
+        },
+        {
+          "id": "m_mute",
+          "row": 0,
+          "col": 3,
+          "category": "Apps",
+          "label": "Mute Audio",
+          "sublabel": "Media",
+          "icon": "VolumeX",
+          "color": "#1c1c1c",
+          "action": {
+            "type": "hotkey",
+            "keys": "VOLUME_MUTE"
+          }
+        },
+        {
+          "id": "m_volup",
+          "row": 1,
+          "col": 0,
+          "category": "Apps",
+          "label": "Volume +",
+          "sublabel": "System",
+          "icon": "Volume2",
+          "color": "#1c1c1c",
+          "action": {
+            "type": "hotkey",
+            "keys": "VOLUME_UP"
+          }
+        },
+        {
+          "id": "m_voldown",
+          "row": 1,
+          "col": 1,
+          "category": "Apps",
+          "label": "Volume -",
+          "sublabel": "System",
+          "icon": "Volume1",
+          "color": "#1c1c1c",
+          "action": {
+            "type": "hotkey",
+            "keys": "VOLUME_DOWN"
+          }
+        },
+        {
+          "id": "m_taskmgr",
+          "row": 1,
+          "col": 2,
+          "category": "Apps",
+          "label": "Task Manager",
+          "sublabel": "Ctrl+Shift+Esc",
+          "icon": "Activity",
+          "color": "#1c1c1c",
+          "action": {
+            "type": "hotkey",
+            "keys": "Ctrl+Shift+Esc"
+          }
+        },
+        {
+          "id": "m_lock",
+          "row": 1,
+          "col": 3,
+          "category": "Apps",
+          "label": "Lock PC",
+          "sublabel": "Win+L",
+          "icon": "Lock",
+          "color": "#1c1c1c",
+          "action": {
+            "type": "hotkey",
+            "keys": "Win+L"
+          }
+        },
+        {
+          "id": "app_obs",
+          "row": 2,
+          "col": 0,
+          "category": "Apps",
+          "label": "Open OBS",
+          "sublabel": "App",
+          "image": "/uploads/obs.svg",
+          "imageMode": "thumbnail",
+          "color": "#1c1c1c",
+          "action": {
+            "type": "app",
+            "target": "obs64.exe"
+          }
+        },
+        {
+          "id": "app_discord",
+          "row": 2,
+          "col": 1,
+          "category": "Apps",
+          "label": "Open Discord",
+          "sublabel": "App",
+          "image": "/uploads/1792930769360_discord-logo.png",
+          "imageMode": "full",
+          "color": "#1c1c1c",
+          "action": {
+            "type": "app",
+            "target": "discord:"
+          },
+          "pageName": "Apps"
+        },
+        {
+          "id": "app_browser",
+          "row": 2,
+          "col": 2,
+          "category": "Apps",
+          "label": "Browser",
+          "sublabel": "Web",
+          "icon": "Globe",
+          "color": "#1c1c1c",
+          "action": {
+            "type": "app",
+            "target": "https://google.com"
+          }
+        },
+        {
+          "id": "app_spotify",
+          "row": 2,
+          "col": 3,
+          "category": "Apps",
+          "label": "Spotify",
+          "sublabel": "App",
+          "icon": "Music",
+          "color": "#1c1c1c",
+          "action": {
+            "type": "app",
+            "target": "spotify"
+          },
+          "pageName": "Apps",
+          "image": "/uploads/1792930782578_9f5edc36-eb4d-414a-8447-10514f2bc224-cover.png",
+          "imageMode": "full"
+        },
+        {
+          "id": "card_1792923745220",
+          "label": "Steam",
+          "sublabel": "App",
+          "image": "/uploads/1792930789567_a248892cf28579d718bab72e46f19489.jpg",
+          "imageMode": "full",
+          "icon": "Layers",
+          "color": "#333333",
+          "volume": 80,
+          "action": {
+            "type": "app",
+            "target": "steam://"
+          },
+          "pageName": "Apps",
+          "category": "Apps"
+        }
+      ]
     }
   ]
 }

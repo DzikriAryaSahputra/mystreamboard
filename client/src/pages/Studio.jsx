@@ -111,6 +111,9 @@ export default function Studio({ onNavigate }) {
     }
   };
 
+  // Audio preview reference in browser
+  const previewAudioRef = useRef(null);
+
   // Trigger Action on Card click
   const handleTrigger = (btn) => {
     if (!btn) return;
@@ -119,10 +122,30 @@ export default function Studio({ onNavigate }) {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(btn.action)
     }).catch(() => {});
+
+    // Browser audio preview for sound action
+    if (btn.action?.type === 'sound' && btn.action.sound) {
+      try {
+        if (previewAudioRef.current) {
+          previewAudioRef.current.pause();
+          previewAudioRef.current = null;
+        }
+        const audio = new Audio(`${baseUrl}/sounds/${btn.action.sound}`);
+        audio.volume = typeof btn.action.volume === 'number' ? btn.action.volume : 0.8;
+        previewAudioRef.current = audio;
+        audio.play().catch(() => {});
+      } catch (e) {}
+    }
   };
 
   // Stop All Audio
   const handleStopAll = () => {
+    if (previewAudioRef.current) {
+      try {
+        previewAudioRef.current.pause();
+        previewAudioRef.current = null;
+      } catch (e) {}
+    }
     fetch(`${baseUrl}/api/trigger`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },

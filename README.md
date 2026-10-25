@@ -17,6 +17,7 @@
   </p>
 
   <p align="center">
+    <a href="#-tampilan-antarmuka-screenshots-showcase">Tampilan Layar</a> •
     <a href="#-fitur-utama">Fitur Utama</a> •
     <a href="#-panduan-instalasi--menjalankan-secara-lokal">Instalasi Cepat</a> •
     <a href="#-integrasi-streaming">Integrasi Streaming</a> •
@@ -42,6 +43,26 @@ Perangkat keras stream deck fisik seringkali mahal dan memiliki jumlah tombol ya
 | **TikTok Live Studio** | Konfigurasi Rumit | **Global Hotkeys Bawaan** |
 | **Soundboard Player** | Terbatas | **Dual Engine + Upload Audio Bebas** |
 | **Mode Layar Penuh** | - | **PWA Fullscreen (Add to Home Screen)** |
+
+---
+
+## 📸 Tampilan Antarmuka (Screenshots Showcase)
+
+<div align="center">
+
+### 🖥️ Desktop Studio Configurator
+*Kelola seluruh kartu, soundboard, aksi OBS, dan hotkey aplikasi dalam antarmuka gelap stealth yang modern.*
+
+<img src="docs/screenshots/desktop-studio.png" alt="Desktop Studio Configurator" width="100%" style="border-radius: 12px; border: 1px solid #222;" />
+
+<br/><br/>
+
+### 📱 Smartphone Deck Controller
+*Tampilan kontroler smartphone (PWA) responsif dengan sentuhan taktil (Haptic Feedback) dan latensi 0 ms melalui Wi-Fi lokal.*
+
+<img src="docs/screenshots/mobile-deck.jpeg" alt="Smartphone Deck Controller" width="75%" style="border-radius: 14px; border: 1px solid #222;" />
+
+</div>
 
 ---
 

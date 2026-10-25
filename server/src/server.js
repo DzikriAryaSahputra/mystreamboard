@@ -139,7 +139,10 @@ app.post('/api/upload-sound', (req, res) => {
   try {
     const { filename, dataUrl } = req.body;
     if (!filename || !dataUrl) return res.status(400).json({ error: 'Missing filename or dataUrl' });
-    const base64Data = dataUrl.replace(/^data:audio\/\w+;base64,/, '').replace(/^data:application\/\w+;base64,/, '');
+    if (!fs.existsSync(SOUNDS_DIR)) {
+      fs.mkdirSync(SOUNDS_DIR, { recursive: true });
+    }
+    const base64Data = dataUrl.includes(';base64,') ? dataUrl.split(';base64,')[1] : dataUrl;
     const ext = path.extname(filename) || '.mp3';
     const cleanName = `${Date.now()}_${path.basename(filename, ext).replace(/[^a-zA-Z0-9_-]/g, '')}${ext}`;
     const filePath = path.join(SOUNDS_DIR, cleanName);
@@ -147,6 +150,7 @@ app.post('/api/upload-sound', (req, res) => {
 
     res.json({ success: true, filename: cleanName, url: `/sounds/${cleanName}` });
   } catch(err) {
+    console.error('[Upload Sound Error]', err);
     res.status(500).json({ error: err.message });
   }
 });
